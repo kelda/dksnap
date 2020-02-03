@@ -60,7 +60,7 @@ func (ui *infoUI) run(ctx context.Context) {
 		alert(ui.app, ui.Pages, fmt.Sprintf("Failed to list snapshots: %s", err), nil)
 	}
 
-	for range newEventsTrigger(ctx, ui.client, "image", "tag", "delete") {
+	for range newEventsTrigger(ctx, ui.client, "image", "tag", "delete", "untag") {
 		if err := ui.syncSnapshots(ctx); err != nil {
 			continue
 		}
@@ -307,12 +307,13 @@ func (ui *infoUI) setupSnapshotActions() {
 
 	deleteButton := tview.NewButton("Delete").
 		SetSelectedFunc(func() {
-			// TODO: Can't delete parent images.
-			_, err := ui.client.ImageRemove(context.Background(), ui.selectedSnapshot.ImageID, types.ImageRemoveOptions{Force: true})
-			if err != nil {
-				alert(ui.app, ui.Pages, fmt.Sprintf("Failed to delete snapshot: %s", err), ui.snapshotActionsView)
-			} else {
-				alert(ui.app, ui.Pages, "Successfully deleted snapshot", ui.snapshotActionsView)
+			for _, name := range ui.selectedSnapshot.ImageNames {
+				_, err := ui.client.ImageRemove(context.Background(), name, types.ImageRemoveOptions{Force: true})
+				if err != nil {
+					alert(ui.app, ui.Pages, fmt.Sprintf("Failed to delete snapshot: %s", err), ui.snapshotActionsView)
+				} else {
+					alert(ui.app, ui.Pages, "Successfully deleted snapshot", ui.snapshotActionsView)
+				}
 			}
 		})
 
