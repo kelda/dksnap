@@ -42,6 +42,11 @@ func newInfoUI(dockerClient *client.Client, app *tview.Application) *infoUI {
 	ui.setupSnapshotActions()
 
 	ui.snapshotListView.SetSelectedFunc(func(row, _ int) {
+		// Can happen before the table is loaded.
+		if row == -1 {
+			return
+		}
+
 		ui.selectedSnapshot = ui.snapshots[row-1]
 		ui.app.SetFocus(ui.snapshotActionsView)
 	})

@@ -37,6 +37,7 @@ func (ui *createUI) run(ctx context.Context) {
 	if err := ui.containerSelector.Sync(ctx); err != nil {
 		alert(ui.app, ui.Pages, fmt.Sprintf("Failed to list containers: %s", err), nil)
 	}
+	ui.app.Draw()
 
 	for range newEventsTrigger(ctx, ui.client, "container", "start", "die") {
 		if err := ui.containerSelector.Sync(ctx); err != nil {
