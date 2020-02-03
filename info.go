@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -131,7 +130,7 @@ func (ui *infoUI) popupHistory(snap *snapshot.Snapshot) {
 		root = root.Parent
 	}
 
-	rootNode := tview.NewTreeNode(root.Title).SetReference(root)
+	rootNode := tview.NewTreeNode(snapshotNodeName(root)).SetReference(root)
 	treeView.SetRoot(rootNode)
 	addChildren(rootNode, root.Children)
 
@@ -379,76 +378,19 @@ func (ui *infoUI) bootSnapshot(ctx context.Context, snap *snapshot.Snapshot) err
 }
 
 func (ui *infoUI) syncSnapshots(ctx context.Context) error {
-	images, err := ui.client.ImageList(ctx, types.ImageListOptions{
-		All: true,
-	})
+	snapshots, err := snapshot.List(ctx, ui.client)
 	if err != nil {
-		return err
+		return fmt.Errorf("list snapshots: %s", err)
 	}
 
-	// Parse all the snapshots.
-	snapshotsByImageID := map[string]*snapshot.Snapshot{}
-	for _, img := range images {
-		if len(img.RepoTags) == 0 || (len(img.RepoTags) == 1 && img.RepoTags[0] == "<none>:<none>") {
-			continue
-		}
-
-		createdStr, ok := img.Labels[snapshot.CreatedLabel]
-		if !ok {
-			continue
-		}
-
-		var snap snapshot.Snapshot
-		created, err := time.Parse(time.RFC3339, createdStr)
-		if err != nil {
-			return err
-		}
-		snap.Created = created
-		snap.Title = img.Labels[snapshot.TitleLabel]
-		snap.DumpPath = img.Labels[snapshot.DumpPathLabel]
-		snap.ImageID = img.ID
-		snap.ImageNames = img.RepoTags
-
-		snapshotsByImageID[snap.ImageID] = &snap
-	}
-
-	// Populate parents.
-	for _, snapshot := range snapshotsByImageID {
-		snapshotHistory, err := ui.client.ImageHistory(ctx, snapshot.ImageID)
-		if err != nil {
-			return err
-		}
-
-		for _, parentImage := range snapshotHistory {
-			if parentImage.ID == snapshot.ImageID {
-				continue
-			}
-
-			// Find the first snapshot parent.
-			if parentSnapshot, ok := snapshotsByImageID[parentImage.ID]; ok {
-				snapshot.Parent = parentSnapshot
-				parentSnapshot.Children = append(parentSnapshot.Children, snapshot)
-				break
-			}
-		}
-	}
-
-	ui.snapshots = nil
-	for _, snapshot := range snapshotsByImageID {
-		ui.snapshots = append(ui.snapshots, snapshot)
-	}
-	sort.Slice(ui.snapshots, func(i, j int) bool {
-		return ui.snapshots[i].Created.After(ui.snapshots[j].Created)
-	})
-
+	ui.snapshots = snapshots
 	ui.renderSnapshotList()
 	return nil
 }
 
-// TODO: Include the root image (e.g. postgres)
 func addChildren(parent *tview.TreeNode, children []*snapshot.Snapshot) {
 	for _, child := range children {
-		childNode := tview.NewTreeNode(child.Title).SetReference(child)
+		childNode := tview.NewTreeNode(snapshotNodeName(child)).SetReference(child)
 		parent.AddChild(childNode)
 		addChildren(childNode, child.Children)
 	}
@@ -467,4 +409,15 @@ func colorizeDiff(toColorize string) string {
 		}
 	}
 	return colorized.String()
+}
+
+func snapshotNodeName(snap *snapshot.Snapshot) string {
+	if !snap.BaseImage {
+		return snap.Title
+	}
+
+	if len(snap.ImageNames) > 0 {
+		return snap.ImageNames[0]
+	}
+	return snap.ImageID
 }

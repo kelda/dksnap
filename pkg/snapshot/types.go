@@ -11,17 +11,14 @@ const (
 )
 
 type Snapshot struct {
-	Metadata
-	Created time.Time
+	Title      string
+	DumpPath   string
+	ImageNames []string
+	BaseImage  bool
+	Created    time.Time
 
 	ImageID string
 
 	Parent   *Snapshot
 	Children []*Snapshot
-}
-
-type Metadata struct {
-	Title      string
-	DumpPath   string
-	ImageNames []string
 }

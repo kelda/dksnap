@@ -70,7 +70,8 @@ func SnapshotGeneric(ctx context.Context, dockerClient *client.Client, container
 		context:           buildContext,
 		buildInstructions: buildInstructions,
 		bootInstructions:  bootInstructions,
-		metadata:          Metadata{Title: title, ImageNames: []string{imageName}},
+		title:             title,
+		imageNames:        []string{imageName},
 	})
 }
 
@@ -80,7 +81,9 @@ type buildOptions struct {
 	context           string
 	buildInstructions []string
 	bootInstructions  []string
-	metadata          Metadata
+	title             string
+	imageNames        []string
+	dumpPath          string
 }
 
 func buildImage(ctx context.Context, dockerClient *client.Client, opts buildOptions) error {
@@ -100,8 +103,8 @@ exec %s $@
 	}
 
 	for k, v := range map[string]string{
-		TitleLabel:    opts.metadata.Title,
-		DumpPathLabel: opts.metadata.DumpPath,
+		TitleLabel:    opts.title,
+		DumpPathLabel: opts.dumpPath,
 		CreatedLabel:  time.Now().Format(time.RFC3339),
 	} {
 		opts.buildInstructions = append(opts.buildInstructions, fmt.Sprintf("LABEL %q=%q", k, v))
@@ -122,7 +125,7 @@ FROM %s
 
 	buildResp, err := dockerClient.ImageBuild(ctx, &buildContextTar, types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
-		Tags:       opts.metadata.ImageNames,
+		Tags:       opts.imageNames,
 	})
 	if err != nil {
 		return err

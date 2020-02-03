@@ -38,10 +38,8 @@ func SnapshotMongo(ctx context.Context, dockerClient *client.Client, container t
 			"COPY dump.archive /docker-snapshot/dump.archive",
 			"COPY load-dump.sh /docker-entrypoint-initdb.d/load-dump.sh",
 		},
-		metadata: Metadata{
-			Title:      title,
-			ImageNames: []string{imageName},
-			DumpPath:   "/docker-snapshot/dump.archive",
-		},
+		title:      title,
+		imageNames: []string{imageName},
+		dumpPath:   "/docker-snapshot/dump.archive",
 	})
 }

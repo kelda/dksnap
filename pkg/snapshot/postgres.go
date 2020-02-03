@@ -35,11 +35,9 @@ func SnapshotPostgres(ctx context.Context, dockerClient *client.Client, containe
 		buildInstructions: []string{
 			"COPY dump.sql /docker-entrypoint-initdb.d/dump.sql",
 		},
-		metadata: Metadata{
-			Title:      title,
-			ImageNames: []string{imageName},
-			DumpPath:   "/docker-entrypoint-initdb.d/dump.sql",
-		},
+		title:      title,
+		imageNames: []string{imageName},
+		dumpPath:   "/docker-entrypoint-initdb.d/dump.sql",
 	})
 }
 
