@@ -165,13 +165,11 @@ func (cs *ContainerSelector) draw(containers []Container) {
 	}
 
 	cs.SetSelectedFunc(func(i, _ int) {
-		// Can happen before the table is loaded.
-		if i == -1 {
-			return
-		}
-
 		// The first row is taken by the column names.
 		containerIndex := i - 1
+		if containerIndex < 0 || containerIndex >= len(containers) {
+			return
+		}
 		cs.selectedFunc(containers[containerIndex])
 	})
 }
