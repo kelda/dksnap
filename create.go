@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 
 	"github.com/kelda/docker-snapshot/pkg/snapshot"
@@ -80,7 +81,6 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 	form.SetBorder(true).
 		SetTitle("Create Snapshot")
 
-	// TODO: Allow moving between forms with up and down arrow.
 	form.
 		AddInputField("Title", "", 20, nil, nil).
 		AddInputField("Image Name", "", 20, nil, nil).
@@ -149,7 +149,16 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 			}()
 		})
 
+	titleInput := form.GetFormItemByLabel("Title").(*tview.InputField)
+	imageNameInput := form.GetFormItemByLabel("Image Name").(*tview.InputField)
+	submitButton := form.GetButton(form.GetButtonIndex("Create Snapshot"))
+	inputFields := []*tview.InputField{
+		titleInput,
+		imageNameInput,
+	}
+
 	// TODO: Test mongo auth.
+	// We need the user to dump as when taking Postgres snapshots.
 	if container.HasPostgres {
 		dbUser, ok := getEnv(container.Config.Env, "POSTGRES_USER")
 		if !ok {
@@ -157,10 +166,10 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 		}
 
 		form.AddInputField("Database User", dbUser, 20, nil, nil)
+		inputFields = append(inputFields, form.GetFormItemByLabel("Database User").(*tview.InputField))
 	}
 
-	titleInput := form.GetFormItemByLabel("Title").(*tview.InputField)
-	imageNameInput := form.GetFormItemByLabel("Image Name").(*tview.InputField)
+	// Automatically generate image names based on the snapshot title.
 	titleInput.SetChangedFunc(func(name string) {
 		image := strings.ToLower(name)
 
@@ -173,8 +182,62 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 		imageNameInput.SetText(image)
 	})
 
-	formModal := newModal(form, 50, 20)
-	ui.Pages.AddPage("create-snapshot-form", formModal, true, true)
+	// Allow navigating between the fields with arrow keys.
+	for i, inputField := range inputFields {
+		i := i
+		isFirstField := i == 0
+		isLastField := i == len(inputFields)-1
+		inputField.SetInputCapture(
+			func(event *tcell.EventKey) *tcell.EventKey {
+				nextInput := func() {
+					if isLastField {
+						ui.app.SetFocus(submitButton)
+						return
+					}
+
+					target := (i + 1) % len(inputFields)
+					ui.app.SetFocus(inputFields[target])
+				}
+
+				prevInput := func() {
+					if isFirstField {
+						ui.app.SetFocus(submitButton)
+						return
+					}
+
+					target := (i - 1) % len(inputFields)
+					ui.app.SetFocus(inputFields[target])
+				}
+
+				switch event.Key() {
+				case tcell.KeyUp:
+					prevInput()
+					return nil
+				case tcell.KeyDown:
+					nextInput()
+					return nil
+				default:
+					return event
+				}
+			})
+	}
+
+	submitButton.SetInputCapture(
+		func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyUp:
+				ui.app.SetFocus(inputFields[len(inputFields)-1])
+				return nil
+			case tcell.KeyDown:
+				ui.app.SetFocus(inputFields[0])
+				return nil
+			default:
+				return event
+			}
+		})
+
+	// Show the form.
+	ui.Pages.AddPage("create-snapshot-form", newModal(form, 50, 20), true, true)
 	ui.app.SetFocus(form)
 	form.SetCancelFunc(func() {
 		ui.Pages.RemovePage("create-snapshot-form")
