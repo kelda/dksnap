@@ -15,7 +15,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 
-	"github.com/kelda/docker-snapshot/pkg/snapshot"
+	"github.com/kelda/dksnap/pkg/snapshot"
 )
 
 const buttonColor = tcell.ColorDarkCyan

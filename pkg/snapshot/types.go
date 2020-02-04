@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	TitleLabel    = "docker-snapshot.title"
-	CreatedLabel  = "docker-snapshot.created"
-	DumpPathLabel = "docker-snapshot.dump-path"
+	TitleLabel    = "dksnap.title"
+	CreatedLabel  = "dksnap.created"
+	DumpPathLabel = "dksnap.dump-path"
 )
 
 type Snapshot struct {

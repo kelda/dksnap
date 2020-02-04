@@ -20,7 +20,7 @@ import (
 // and creates a tarball for each attached volume. The new container's entrypoint
 // is then modified to load the volumes at boot.
 func SnapshotGeneric(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
-	buildContext, err := ioutil.TempDir("", "docker-snapshot-context")
+	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func SnapshotGeneric(ctx context.Context, dockerClient *client.Client, container
 			return err
 		}
 
-		volumeTarFile, err := ioutil.TempFile(buildContext, "docker-snapshot-volume")
+		volumeTarFile, err := ioutil.TempFile(buildContext, "dksnap-volume")
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func SnapshotGeneric(ctx context.Context, dockerClient *client.Client, container
 			return err
 		}
 
-		stagePath := fmt.Sprintf("/docker-snapshot/%d", i)
+		stagePath := fmt.Sprintf("/dksnap/%d", i)
 		buildInstructions = append(buildInstructions,
 			fmt.Sprintf("ADD %s %s", filepath.Base(volumeTarFile.Name()), stagePath))
 		// What effect will wiping db have?
@@ -98,8 +98,8 @@ exec %s $@
 			return err
 		}
 
-		opts.buildInstructions = append(opts.buildInstructions, "COPY entrypoint.sh /docker-snapshot/entrypoint.sh")
-		opts.buildInstructions = append(opts.buildInstructions, `ENTRYPOINT ["/docker-snapshot/entrypoint.sh"]`)
+		opts.buildInstructions = append(opts.buildInstructions, "COPY entrypoint.sh /dksnap/entrypoint.sh")
+		opts.buildInstructions = append(opts.buildInstructions, `ENTRYPOINT ["/dksnap/entrypoint.sh"]`)
 	}
 
 	for k, v := range map[string]string{

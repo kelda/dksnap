@@ -14,7 +14,7 @@ import (
 )
 
 func SnapshotPostgres(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName, dbUser string) error {
-	buildContext, err := ioutil.TempDir("", "docker-snapshot-context")
+	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
 	}

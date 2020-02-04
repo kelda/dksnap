@@ -11,7 +11,7 @@ import (
 )
 
 func SnapshotMongo(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
-	buildContext, err := ioutil.TempDir("", "docker-snapshot-context")
+	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func SnapshotMongo(ctx context.Context, dockerClient *client.Client, container t
 		return err
 	}
 
-	loadScript := []byte("mongorestore --drop --archive=/docker-snapshot/dump.archive")
+	loadScript := []byte("mongorestore --drop --archive=/dksnap/dump.archive")
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "load-dump.sh"), loadScript, 0755); err != nil {
 		return err
 	}
@@ -35,11 +35,11 @@ func SnapshotMongo(ctx context.Context, dockerClient *client.Client, container t
 		baseImage: container.Image,
 		context:   buildContext,
 		buildInstructions: []string{
-			"COPY dump.archive /docker-snapshot/dump.archive",
+			"COPY dump.archive /dksnap/dump.archive",
 			"COPY load-dump.sh /docker-entrypoint-initdb.d/load-dump.sh",
 		},
 		title:      title,
 		imageNames: []string{imageName},
-		dumpPath:   "/docker-snapshot/dump.archive",
+		dumpPath:   "/dksnap/dump.archive",
 	})
 }

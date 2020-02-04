@@ -1,4 +1,4 @@
-module github.com/kelda/docker-snapshot
+module github.com/kelda/dksnap
 
 go 1.13
 
