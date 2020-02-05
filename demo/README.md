@@ -39,7 +39,7 @@ Then, title your snapshot "No todos", and hit `[Enter]` on "Create Snapshot".
 Switch to the "View snapshots" tab in `dksnap` using `Ctrl-N`, and select the
 "No todos" snapshot.
 
-Then, hit `[Enter]`, select "Swap", and select the `mongo` container.
+Then, hit `[Enter]`, select "Replace Running Container", and select the `mongo` container.
 
 ## 6. Confirm that the database was rolled back
 
