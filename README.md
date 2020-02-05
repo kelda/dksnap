@@ -171,5 +171,5 @@ guidelines](CONTRIBUTING.md) to get started.
 git clone https://github.com/kelda/dksnap
 cd dksnap
 GO111MODULE=on go install .
-dksnap
+./dksnap
 ```
