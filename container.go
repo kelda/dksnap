@@ -117,7 +117,7 @@ func (cs *ContainerSelector) draw(containers []Container) {
 		SetSelectable(true, false).
 		SetFixed(1, 0).
 		SetBorder(true).
-		SetTitle("Containers")
+		SetTitle("Select a Container")
 
 	// Set column names.
 	cs.SetCell(0, containerImageColumnIndex, &tview.TableCell{

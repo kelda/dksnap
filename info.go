@@ -211,22 +211,25 @@ func (ui *infoUI) popupReplaceContainer(snap *snapshot.Snapshot) {
 
 			exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
 				ui.Pages.RemovePage("replace-status")
-				ui.Pages.RemovePage("replace-container-selector")
+				ui.Pages.RemovePage("replace-container-modal")
 			})
 			modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
 			ui.app.SetFocus(exitButton)
 		}()
 	}
 	doneFunc := func(_ tcell.Key) {
-		ui.Pages.RemovePage("replace-container-selector")
+		ui.Pages.RemovePage("replace-container-modal")
 	}
-	containerSelector := NewContainerSelector(ui.client, selectedFunc, doneFunc)
 
+	containerSelector := NewContainerSelector(ui.client, selectedFunc, doneFunc)
 	if err := containerSelector.Sync(context.Background()); err != nil {
 		alert(ui.app, ui.Pages, fmt.Sprintf("Failed to list containers: %s", err), ui.snapshotActionsView)
 		return
 	}
-	ui.Pages.AddAndSwitchToPage("replace-container-selector", containerSelector, true)
+
+	_, _, screenWidth, screenHeight := ui.Pages.GetRect()
+	modal := newModal(containerSelector, screenWidth-10, screenHeight-10)
+	ui.Pages.AddAndSwitchToPage("replace-container-modal", modal, true)
 	ui.app.SetFocus(containerSelector)
 }
 
