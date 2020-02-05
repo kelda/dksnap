@@ -175,7 +175,7 @@ func (ui *infoUI) popupHistory(snap *snapshot.Snapshot) {
 	ui.app.SetFocus(historyView)
 }
 
-func (ui *infoUI) popupSwapContainer(snap *snapshot.Snapshot) {
+func (ui *infoUI) popupReplaceContainer(snap *snapshot.Snapshot) {
 	selectedFunc := func(container Container) {
 		logs := tview.NewTextView().
 			SetDynamicColors(true).
@@ -191,34 +191,34 @@ func (ui *infoUI) popupSwapContainer(snap *snapshot.Snapshot) {
 			SetTitle("Boot Status")
 
 		modal := newModal(modalContents, 60, 10)
-		ui.Pages.AddPage("swap-status", modal, true, true)
+		ui.Pages.AddPage("replace-status", modal, true, true)
 
-		fmt.Fprintf(logs, "Swapping container..")
+		fmt.Fprintf(logs, "Replacing container..")
 		pp := NewProgressPrinter(logs)
 		pp.Start()
 
 		go func() {
-			err := ui.swapContainer(context.Background(), container, snap)
+			err := ui.replaceContainer(context.Background(), container, snap)
 			pp.Stop()
 			logs.Clear()
 			logs.SetTextAlign(tview.AlignCenter)
 
-			message := "[green]Successfully swapped container![-]"
+			message := "[green]Successfully replaced container![-]"
 			if err != nil {
-				message = fmt.Sprintf("[red]Failed to swap container:[-]\n%s", err)
+				message = fmt.Sprintf("[red]Failed to replace container:[-]\n%s", err)
 			}
 			fmt.Fprintln(logs, message)
 
 			exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
-				ui.Pages.RemovePage("swap-status")
-				ui.Pages.RemovePage("swap-container-selector")
+				ui.Pages.RemovePage("replace-status")
+				ui.Pages.RemovePage("replace-container-selector")
 			})
 			modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
 			ui.app.SetFocus(exitButton)
 		}()
 	}
 	doneFunc := func(_ tcell.Key) {
-		ui.Pages.RemovePage("swap-container-selector")
+		ui.Pages.RemovePage("replace-container-selector")
 	}
 	containerSelector := NewContainerSelector(ui.client, selectedFunc, doneFunc)
 
@@ -226,11 +226,11 @@ func (ui *infoUI) popupSwapContainer(snap *snapshot.Snapshot) {
 		alert(ui.app, ui.Pages, fmt.Sprintf("Failed to list containers: %s", err), ui.snapshotActionsView)
 		return
 	}
-	ui.Pages.AddAndSwitchToPage("swap-container-selector", containerSelector, true)
+	ui.Pages.AddAndSwitchToPage("replace-container-selector", containerSelector, true)
 	ui.app.SetFocus(containerSelector)
 }
 
-func (ui *infoUI) swapContainer(ctx context.Context, old Container, snap *snapshot.Snapshot) error {
+func (ui *infoUI) replaceContainer(ctx context.Context, old Container, snap *snapshot.Snapshot) error {
 	err := ui.client.ContainerRemove(ctx, old.ID, types.ContainerRemoveOptions{
 		Force: true,
 	})
@@ -289,12 +289,12 @@ func (ui *infoUI) setupSnapshotActions() {
 	ui.snapshotActionsView.Clear().
 		AddItem(label, 13, 0, false)
 
-	historyButton := tview.NewButton("History").
+	historyButton := tview.NewButton("View snapshot history").
 		SetSelectedFunc(func() {
 			ui.popupHistory(ui.selectedSnapshot)
 		})
 
-	bootButton := tview.NewButton("Boot").
+	bootButton := tview.NewButton("Boot new container").
 		SetSelectedFunc(func() {
 			if err := ui.bootSnapshot(context.Background(), ui.selectedSnapshot); err != nil {
 				alert(ui.app, ui.Pages, fmt.Sprintf("Failed to boot snapshot: %s", err), ui.snapshotActionsView)
@@ -303,12 +303,12 @@ func (ui *infoUI) setupSnapshotActions() {
 			}
 		})
 
-	swapButton := tview.NewButton("Swap").
+	replaceButton := tview.NewButton("Replace running container").
 		SetSelectedFunc(func() {
-			ui.popupSwapContainer(ui.selectedSnapshot)
+			ui.popupReplaceContainer(ui.selectedSnapshot)
 		})
 
-	deleteButton := tview.NewButton("Delete").
+	deleteButton := tview.NewButton("Delete snapshot").
 		SetSelectedFunc(func() {
 			for _, name := range ui.selectedSnapshot.ImageNames {
 				_, err := ui.client.ImageRemove(context.Background(), name, types.ImageRemoveOptions{Force: true})
@@ -321,7 +321,7 @@ func (ui *infoUI) setupSnapshotActions() {
 		})
 
 	buttons := []*tview.Button{
-		historyButton, bootButton, swapButton, deleteButton,
+		historyButton, bootButton, replaceButton, deleteButton,
 	}
 	for i, button := range buttons {
 		i := i
