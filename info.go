@@ -289,12 +289,12 @@ func (ui *infoUI) setupSnapshotActions() {
 	ui.snapshotActionsView.Clear().
 		AddItem(label, 13, 0, false)
 
-	historyButton := tview.NewButton("View snapshot history").
+	historyButton := tview.NewButton("View Snapshot History").
 		SetSelectedFunc(func() {
 			ui.popupHistory(ui.selectedSnapshot)
 		})
 
-	bootButton := tview.NewButton("Boot new container").
+	bootButton := tview.NewButton("Boot New Container").
 		SetSelectedFunc(func() {
 			if err := ui.bootSnapshot(context.Background(), ui.selectedSnapshot); err != nil {
 				alert(ui.app, ui.Pages, fmt.Sprintf("Failed to boot snapshot: %s", err), ui.snapshotActionsView)
@@ -303,12 +303,12 @@ func (ui *infoUI) setupSnapshotActions() {
 			}
 		})
 
-	replaceButton := tview.NewButton("Replace running container").
+	replaceButton := tview.NewButton("Replace Running Container").
 		SetSelectedFunc(func() {
 			ui.popupReplaceContainer(ui.selectedSnapshot)
 		})
 
-	deleteButton := tview.NewButton("Delete snapshot").
+	deleteButton := tview.NewButton("Delete Snapshot").
 		SetSelectedFunc(func() {
 			for _, name := range ui.selectedSnapshot.ImageNames {
 				_, err := ui.client.ImageRemove(context.Background(), name, types.ImageRemoveOptions{Force: true})

@@ -37,8 +37,8 @@ func main() {
 		title    string
 		contents tview.Primitive
 	}{
-		{"Create snapshot", createUI},
-		{"View snapshots", infoUI},
+		{"Create Snapshot", createUI},
+		{"View Snapshots", infoUI},
 	}
 	tabTracker := tview.NewTextView().
 		SetDynamicColors(true).
