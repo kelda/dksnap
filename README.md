@@ -57,7 +57,7 @@ dksnap
 
 Create a snapshot of any running docker container.
 * Snapshots are database aware.  They will politely ask the database process to
-  dump it's contents before creating a docker image.
+  dump its contents before creating a docker image.
 * Snapshots are volume aware.  They will capture data in volumes as well as in
   the container image.
 
@@ -86,7 +86,7 @@ restore database contents for the following databases:
 * Postgres
 
 It has a plugin architecture making it easy to add more databases in the
-future.  Furthermore for containers that aren't among the supported databases,
+future.  Furthermore, for containers that aren't among the supported databases,
 it can fall back to capturing the filesystem.
 
 #### Docker Images
