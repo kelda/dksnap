@@ -74,7 +74,7 @@ and restart the container using the same docker command arguments.
 `dksnap` includes a terminal browser allowing you to view and manipulate the
 snapshots you've created.  You can:
 * See a tree of all the snapshots and how they relate to each other.
-* See the diff between a snapshot and it's parent.
+* See the diff between a snapshot and its parent.
 * Create/Boot/Replace snapshots from the UI.
 
 ### Other Features
