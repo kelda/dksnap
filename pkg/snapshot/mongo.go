@@ -10,7 +10,9 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func SnapshotMongo(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
+// CreateMongo creates a snapshot for Mongo containers. It dumps the database
+// using `mongodump`.
+func CreateMongo(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err

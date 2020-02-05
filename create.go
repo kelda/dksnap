@@ -118,11 +118,11 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 				switch {
 				case container.HasPostgres:
 					dbUser := form.GetFormItemByLabel("Database User").(*tview.InputField).GetText()
-					err = snapshot.SnapshotPostgres(context.Background(), ui.client, container.ContainerJSON, title, imageName, dbUser)
+					err = snapshot.CreatePostgres(context.Background(), ui.client, container.ContainerJSON, title, imageName, dbUser)
 				case container.HasMongo:
-					err = snapshot.SnapshotMongo(context.Background(), ui.client, container.ContainerJSON, title, imageName)
+					err = snapshot.CreateMongo(context.Background(), ui.client, container.ContainerJSON, title, imageName)
 				default:
-					err = snapshot.SnapshotGeneric(context.Background(), ui.client, container.ContainerJSON, title, imageName)
+					err = snapshot.CreateGeneric(context.Background(), ui.client, container.ContainerJSON, title, imageName)
 				}
 
 				pp.Stop()

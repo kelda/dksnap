@@ -100,11 +100,13 @@ func main() {
 	}
 }
 
+// KeyMapping represents a control used to interact with the UI.
 type KeyMapping struct {
 	Key    string
 	Action string
 }
 
+// NewControlsView creates a new tview component that displays the given controls.
 func NewControlsView(controls []KeyMapping) *tview.TextView {
 	text := tview.NewTextView().
 		SetDynamicColors(true).

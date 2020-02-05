@@ -15,6 +15,7 @@ import (
 	"github.com/kelda/dksnap/pkg/snapshot"
 )
 
+// Container represents a running container that can be snapshotted.
 type Container struct {
 	HasPostgres  bool
 	HasMongo     bool
@@ -22,6 +23,7 @@ type Container struct {
 	types.ContainerJSON
 }
 
+// ContainerSelector is a tview component that selects a container from a list.
 type ContainerSelector struct {
 	selectedFunc func(Container)
 	client       *client.Client
@@ -35,6 +37,7 @@ const (
 	containerNameColumnIndex
 )
 
+// NewContainerSelector creates a new container selector.
 func NewContainerSelector(client *client.Client, selectedFunc func(Container), doneFunc func(tcell.Key)) *ContainerSelector {
 	table := tview.NewTable().
 		SetDoneFunc(doneFunc)
@@ -45,6 +48,7 @@ func NewContainerSelector(client *client.Client, selectedFunc func(Container), d
 	}
 }
 
+// Sync updates the listed containers with the latest running containers.
 func (cs *ContainerSelector) Sync(ctx context.Context) error {
 	snapshots, err := snapshot.List(ctx, cs.client)
 	if err != nil {

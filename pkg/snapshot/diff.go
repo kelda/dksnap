@@ -14,6 +14,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 )
 
+// Diff returns the diff between the dumps of the given snapshots.
 func Diff(ctx context.Context, dockerClient *client.Client, x, y *Snapshot) (string, error) {
 	if x.DumpPath == "" || y.DumpPath == "" {
 		return "", errors.New("can't diff generic snapshots")

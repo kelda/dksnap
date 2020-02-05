@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// List returns all the snapshots on the local machine.
 func List(ctx context.Context, dockerClient *client.Client) ([]*Snapshot, error) {
 	images, err := dockerClient.ImageList(ctx, types.ImageListOptions{
 		All: true,

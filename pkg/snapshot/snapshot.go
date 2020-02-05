@@ -16,10 +16,10 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// SnapshotGeneric snapshots the container's filesystem with `docker commit`,
+// CreateGeneric snapshots the container's filesystem with `docker commit`,
 // and creates a tarball for each attached volume. The new container's entrypoint
 // is then modified to load the volumes at boot.
-func SnapshotGeneric(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
+func CreateGeneric(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
