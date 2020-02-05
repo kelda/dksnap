@@ -62,11 +62,13 @@ We also have [step-by-step instructions](./demo/README.md).
 ### Create Snapshot
 ![Create a Snapshot](https://kelda.io/img/dksnap/create-snapshot.gif)
 
-Create a snapshot of any running docker container.
-* Snapshots are database aware.  They will politely ask the database process to
-  dump its contents before creating a docker image.
+Create a snapshot of **any** running docker container. `dksnap` works with any
+Docker container, but has extra features for select databases.
 * Snapshots are volume aware.  They will capture data in volumes as well as in
   the container image.
+* Snapshots are database aware.  When snapshotting databases that implement the
+  [plugin interface](#database-awareness), `dksnap` will politely ask the database process to
+  dump its contents before creating a docker image.
 
 ### Replace Container
 ![](https://kelda.io/img/dksnap/swap-snapshot.gif)
@@ -87,14 +89,16 @@ snapshots you've created.  You can:
 ### Other Features
 
 #### Database Awareness
-`dksnap` is currently database aware, meaning it knows how to nicely dump and
+`dksnap` is database aware, meaning it knows how to nicely dump and
 restore database contents for the following databases:
 * Mongo
 * Postgres
 
 It has a plugin architecture making it easy to add more databases in the
-future.  Furthermore, for containers that aren't among the supported databases,
-it can fall back to capturing the filesystem.
+future.
+
+**Note:** For containers that aren't among the supported databases, it falls back to
+capturing the filesystem.
 
 #### Docker Images
 `dksnap` images are simply docker images with some additional metadata.  This
@@ -102,9 +106,9 @@ means they can be viewed and manipulated using the standard `docker` command
 line tools.
 
 #### Share Snapshots
-Share snapshots. Because `dksnap` stores all of the snapshot information in a
-`docker` image, you can share your snapshot by pushing and pulling to Docker
-registries just like you would any other Docker container.
+Because `dksnap` stores all of the snapshot information in a `docker` image,
+you can share your snapshot by pushing and pulling to Docker registries just
+like you would any other Docker container.
 
 #### Volume Awareness
 Snapshots are volume aware. The official database images all store their data
@@ -113,6 +117,18 @@ saves your volumes as well as the container’s filesystem so that all of the
 container’s state is saved.
 
 ## FAQ
+
+#### How does it work?
+
+By default, `dksnap` creates a snapshot by:
+
+1. Committing the container's filesystem with `docker commit`.
+1. Dumping the contents of all attached volumes.
+1. Creating a new Docker image that loads the dumped data at boot.
+
+`dksnap` also has first-class support for select databases, in which case it
+runs the database-specific dump command, and creates a Docker image that loads
+the dump at boot.
 
 #### How is this different than `docker commit`?
 `dksnap` uses docker commit for its generic snapshot approach to capture the
@@ -132,7 +148,7 @@ containers.
 you like.
 
 ####  Does `dksnap` capture CPU and RAM?
-Not currently.  It's on the roadmap ...  Let us know if this would be useful.
+Not currently -- it's on the roadmap.  Let us know if this would be useful.
 
 ## Roadmap
 
