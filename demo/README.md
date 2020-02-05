@@ -7,6 +7,8 @@ This directory contains an example `node`
 The following instructions will walk you through using `dksnap` to create a
 snapshot, and rollback to it.
 
+[![Demo](http://i3.ytimg.com/vi/7Aaf5VCldLg/maxresdefault.jpg)](https://youtu.be/7Aaf5VCldLg)
+
 ## 1. Download the demo
 
 ```
