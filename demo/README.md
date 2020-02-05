@@ -1,4 +1,4 @@
-# Demo
+# Try out `dksnap`
 
 This directory contains an example `node` application that stores data in `mongo`.
 
