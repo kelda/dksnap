@@ -134,6 +134,13 @@ you like.
 ####  Does `dksnap` capture CPU and RAM?
 Not currently.  It's on the roadmap ...  Let us know if this would be useful.
 
+## Roadmap
+
+* Automated snapshot creation from production and staging databases.
+* A non-graphical CLI interface that's scriptable.
+* Native support for additional databases.
+* Snapshot of CPU and RAM state as well.
+
 ## Contributing
 
 `dksnap` is still in alpha and under heavy development.  Contributions are very
@@ -150,10 +157,3 @@ cd dksnap
 GO111MODULE=on go install .
 dksnap
 ```
-
-## Roadmap
-
-* Automated snapshot creation from production and staging databases.
-* A non-graphical CLI interface that's scriptable.
-* Native support for additional databases.
-* Snapshot of CPU and RAM state as well.
