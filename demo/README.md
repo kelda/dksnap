@@ -5,7 +5,7 @@ This directory contains an example `node`
 `mongo`.
 
 The following instructions will walk you through using `dksnap` to create a
-snapshot, and rollback to it.
+snapshot, and rollback to it. Click the image below to view a video of the demo.
 
 [![Demo](http://i3.ytimg.com/vi/7Aaf5VCldLg/maxresdefault.jpg)](https://youtu.be/7Aaf5VCldLg)
 
