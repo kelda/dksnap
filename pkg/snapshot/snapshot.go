@@ -60,7 +60,6 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 			fmt.Sprintf("rm -rf %s/* && cp -r %s/* %s", mount.Destination, stagePath, filepath.Dir(mount.Destination)))
 	}
 
-	// TODO: Shouldn't this be inherited from the parent?
 	var args []string
 	for _, arg := range container.Args {
 		args = append(args, fmt.Sprintf("%q", arg))
@@ -98,8 +97,6 @@ type buildOptions struct {
 
 func buildImage(ctx context.Context, dockerClient *client.Client, opts buildOptions) error {
 	if len(opts.bootInstructions) != 0 {
-		// TODO: What if Path is undefined? Or parent defines it?
-		// TODO: What if copy fails.
 		bootScript := fmt.Sprintf(`#!/bin/sh
 %s
 exec %s $@
@@ -141,12 +138,10 @@ FROM %s
 		return err
 	}
 	defer buildResp.Body.Close()
-	// TODO: Process failures in Dockerfile.
 	io.Copy(ioutil.Discard, buildResp.Body)
 	return nil
 }
 
-// TODO: Test symlinks.
 func makeTar(writer io.Writer, dir string) error {
 	tw := tar.NewWriter(writer)
 	defer tw.Close()

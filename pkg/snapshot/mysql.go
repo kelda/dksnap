@@ -13,7 +13,6 @@ import (
 // MySQL creates snapshots for MySQL containers. It dumps the database
 // using `mysqldump`.
 type MySQL struct {
-	// TODO: Add username and password.
 	client *client.Client
 }
 

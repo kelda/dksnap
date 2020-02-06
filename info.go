@@ -252,7 +252,6 @@ func (ui *infoUI) replaceContainer(ctx context.Context, old Container, snap *sna
 	}
 	createdContainer, err := ui.client.ContainerCreate(ctx, containerConfig, old.HostConfig, networkingConfig, old.Name)
 	if err != nil {
-		// TODO: Wrap errors throughout proj
 		return err
 	}
 

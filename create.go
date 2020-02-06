@@ -160,7 +160,6 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 		imageNameInput,
 	}
 
-	// TODO: Test mongo auth.
 	// We need the user to dump as when taking Postgres snapshots.
 	if container.HasPostgres {
 		dbUser, ok := getEnv(container.Config.Env, "POSTGRES_USER")

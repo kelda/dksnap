@@ -11,11 +11,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-// TODO: Think whether it's thread safe.
-// TODO: Add disable-dump
-// TODO: Does logic work after restart for persistent volume? Specifically:
-// load the data, modify it, restart the container. Do the modifications
-// persist?
 func main() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
