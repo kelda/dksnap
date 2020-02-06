@@ -66,7 +66,7 @@ Docker container, but has extra features for select databases.
 * Snapshots are volume aware.  They will capture data in volumes as well as in
   the container image.
 * Snapshots are database aware.  When snapshotting databases that implement the
-  [plugin interface](#database-awareness), `dksnap` will politely ask the database process to
+  [plugin interface](./pkg/snapshot/types.go), `dksnap` will politely ask the database process to
   dump its contents before creating a Docker image.
 
 ### Replace Container

@@ -7,6 +7,13 @@ import (
 	"github.com/docker/docker/api/types"
 )
 
+// Snapshotter defines the interface for creating snapshots. Implementations
+// may make assumptions about the type of container that is being snapshotted.
+// For example, the Postgres snapshotter shells out to `pg_dump`.
+type Snapshotter interface {
+	Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error
+}
+
 const (
 	// TitleLabel is the label added to Docker images to track the title of
 	// snapshots.
@@ -37,9 +44,4 @@ type Snapshot struct {
 
 	Parent   *Snapshot
 	Children []*Snapshot
-}
-
-// Snapshotter defines the interface for creating snapshots.
-type Snapshotter interface {
-	Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error
 }
