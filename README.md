@@ -40,8 +40,8 @@ Or download the latest [release](https://github.com/kelda/dksnap/releases) and
 copy to your path.
 
 #### Demo
-Watch the [demo](https://youtu.be/7Aaf5VCldLg), and do it yourself with
-[step-by-step instructions](./demo/README.md):
+Watch the [demo](https://youtu.be/7Aaf5VCldLg), or try it yourself with
+step-by-step [instructions](./demo/README.md):
 
 ```
 # Download the demo.
