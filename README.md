@@ -40,7 +40,8 @@ Or download the latest [release](https://github.com/kelda/dksnap/releases) and
 copy to your path.
 
 #### Demo
-Watch the [demo](https://youtu.be/7Aaf5VCldLg), and recreate it yourself:
+Watch the [demo](https://youtu.be/7Aaf5VCldLg), and do it yourself with
+[step-by-step instructions](./demo/README.md):
 
 ```
 # Download the demo.
@@ -54,7 +55,6 @@ docker-compose up -d
 dksnap
 ```
 
-We also have [step-by-step instructions](./demo/README.md).
 
 ## Key Features
 
