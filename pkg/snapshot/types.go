@@ -1,7 +1,10 @@
 package snapshot
 
 import (
+	"context"
 	"time"
+
+	"github.com/docker/docker/api/types"
 )
 
 const (
@@ -34,4 +37,9 @@ type Snapshot struct {
 
 	Parent   *Snapshot
 	Children []*Snapshot
+}
+
+// Snapshotter defines the interface for creating snapshots.
+type Snapshotter interface {
+	Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error
 }

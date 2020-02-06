@@ -10,16 +10,26 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// CreateMongo creates a snapshot for Mongo containers. It dumps the database
+// Mongo creates snapshots for Mongo containers. It dumps the database
 // using `mongodump`.
-func CreateMongo(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
+type Mongo struct {
+	client *client.Client
+}
+
+// NewMongo creates a new mongo snapshotter.
+func NewMongo(c *client.Client) Snapshotter {
+	return &Mongo{c}
+}
+
+// Create creates a new snapshot.
+func (c *Mongo) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(buildContext)
 
-	dump, err := exec(ctx, dockerClient, container.ID, []string{"mongodump", "--archive"})
+	dump, err := exec(ctx, c.client, container.ID, []string{"mongodump", "--archive"})
 	if err != nil {
 		return err
 	}
@@ -33,7 +43,7 @@ func CreateMongo(ctx context.Context, dockerClient *client.Client, container typ
 		return err
 	}
 
-	return buildImage(ctx, dockerClient, buildOptions{
+	return buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
 		buildInstructions: []string{

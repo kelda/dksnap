@@ -19,6 +19,7 @@ import (
 type Container struct {
 	HasPostgres  bool
 	HasMongo     bool
+	HasMySQL     bool
 	FromSnapshot *snapshot.Snapshot
 	types.ContainerJSON
 }
@@ -72,9 +73,7 @@ func (cs *ContainerSelector) Sync(ctx context.Context) error {
 			return err
 		}
 
-		hasPostgres := false
-		hasMongo := false
-
+		var hasPostgres, hasMongo, hasMySQL bool
 		topResp, err := cs.client.ContainerTop(ctx, containerID.ID, []string{"-eo", "pid,comm"})
 		if err != nil {
 			// The container was stopped between the list and top.
@@ -87,12 +86,13 @@ func (cs *ContainerSelector) Sync(ctx context.Context) error {
 					continue
 				}
 
-				if strings.Contains(process[1], "postgres") {
+				switch {
+				case strings.Contains(process[1], "postgres"):
 					hasPostgres = true
-					break
-				} else if strings.Contains(process[1], "mongo") {
+				case strings.Contains(process[1], "mongo"):
 					hasMongo = true
-					break
+				case strings.Contains(process[1], "mysql"):
+					hasMySQL = true
 				}
 			}
 		}
@@ -103,6 +103,7 @@ func (cs *ContainerSelector) Sync(ctx context.Context) error {
 		containers = append(containers, Container{
 			HasPostgres:   hasPostgres,
 			HasMongo:      hasMongo,
+			HasMySQL:      hasMySQL,
 			FromSnapshot:  snapshotByImageID[imageID],
 			ContainerJSON: containerInfo,
 		})

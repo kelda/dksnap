@@ -98,6 +98,7 @@ volumes.
 restore database contents for the following databases:
 * Mongo
 * Postgres
+* MySQL
 
 It has a plugin architecture making it easy to add more databases in the
 future.

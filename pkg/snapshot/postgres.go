@@ -13,16 +13,27 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
-// CreatePostgres creates a snapshot for Postgres containers. It dumps the
+// Postgres creates snapshots for Postgres containers. It dumps the
 // database using pg_dump.
-func CreatePostgres(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName, dbUser string) error {
+type Postgres struct {
+	client *client.Client
+	dbUser string
+}
+
+// NewPostgres creates a new Postgres snapshotter.
+func NewPostgres(c *client.Client, dbUser string) Snapshotter {
+	return &Postgres{c, dbUser}
+}
+
+// Create creates a new snapshot.
+func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(buildContext)
 
-	dump, err := exec(ctx, dockerClient, container.ID, []string{"pg_dump", "-U", dbUser})
+	dump, err := exec(ctx, c.client, container.ID, []string{"pg_dump", "-U", c.dbUser})
 	if err != nil {
 		return err
 	}
@@ -31,7 +42,7 @@ func CreatePostgres(ctx context.Context, dockerClient *client.Client, container 
 		return err
 	}
 
-	return buildImage(ctx, dockerClient, buildOptions{
+	return buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
 		buildInstructions: []string{

@@ -16,10 +16,20 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// CreateGeneric snapshots the container's filesystem with `docker commit`,
-// and creates a tarball for each attached volume. The new container's entrypoint
-// is then modified to load the volumes at boot.
-func CreateGeneric(ctx context.Context, dockerClient *client.Client, container types.ContainerJSON, title, imageName string) error {
+// Generic creates snapshots by saving the container's filesystem with `docker
+// commit`, and creating a tarball for each attached volume. The new
+// container's entrypoint is then modified to load the volumes at boot.
+type Generic struct {
+	client *client.Client
+}
+
+// NewGeneric creates a new generic snapshotter.
+func NewGeneric(c *client.Client) Snapshotter {
+	return &Generic{c}
+}
+
+// Create creates a new snapshot.
+func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
 		return err
@@ -28,7 +38,7 @@ func CreateGeneric(ctx context.Context, dockerClient *client.Client, container t
 
 	var buildInstructions, bootInstructions []string
 	for i, mount := range container.Mounts {
-		volumeTarReader, _, err := dockerClient.CopyFromContainer(ctx, container.ID, mount.Destination)
+		volumeTarReader, _, err := c.client.CopyFromContainer(ctx, container.ID, mount.Destination)
 		if err != nil {
 			return err
 		}
@@ -57,14 +67,14 @@ func CreateGeneric(ctx context.Context, dockerClient *client.Client, container t
 	}
 	buildInstructions = append(buildInstructions, fmt.Sprintf(`CMD [%s]`, strings.Join(args, ", ")))
 
-	fsCommit, err := dockerClient.ContainerCommit(ctx, container.ID, types.ContainerCommitOptions{
+	fsCommit, err := c.client.ContainerCommit(ctx, container.ID, types.ContainerCommitOptions{
 		Pause: true,
 	})
 	if err != nil {
 		return err
 	}
 
-	return buildImage(ctx, dockerClient, buildOptions{
+	return buildImage(ctx, c.client, buildOptions{
 		baseImage:         fsCommit.ID,
 		oldEntrypoint:     container.Path,
 		context:           buildContext,
