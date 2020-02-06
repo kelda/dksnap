@@ -43,4 +43,8 @@ func (pp *ProgressPrinter) Start() {
 func (pp *ProgressPrinter) Stop() {
 	close(pp.stop)
 	<-pp.stopped
+
+	// Reset the channels so that the progress printer can be invoked again.
+	pp.stop = make(chan struct{})
+	pp.stopped = make(chan struct{})
 }

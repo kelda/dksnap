@@ -87,10 +87,15 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 		AddButton("Create Snapshot", func() {
 			title := form.GetFormItemByLabel("Title").(*tview.InputField).GetText()
 			imageName := form.GetFormItemByLabel("Image Name").(*tview.InputField).GetText()
-
 			if title == "" || imageName == "" {
 				alert(ui.app, ui.Pages, "A title and image name are required.", form)
 				return
+			}
+
+			var dbUser string
+			dbUserInput := form.GetFormItemByLabel("Database User")
+			if dbUserInput != nil {
+				dbUser = dbUserInput.(*tview.InputField).GetText()
 			}
 
 			snapshotLogs := tview.NewTextView().
@@ -109,43 +114,12 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 			modal := newModal(modalContents, 60, 10)
 			ui.Pages.AddPage("snapshot-status", modal, true, true)
 
-			fmt.Fprintf(snapshotLogs, "Creating snapshot..")
-			pp := NewProgressPrinter(snapshotLogs)
-			pp.Start()
-
 			go func() {
-				var snapshotter snapshot.Snapshotter
-				switch {
-				case container.HasPostgres:
-					dbUser := form.GetFormItemByLabel("Database User").(*tview.InputField).GetText()
-					snapshotter = snapshot.NewPostgres(ui.client, dbUser)
-				case container.HasMongo:
-					snapshotter = snapshot.NewMongo(ui.client)
-				case container.HasMySQL:
-					snapshotter = snapshot.NewMySQL(ui.client)
-				default:
-					snapshotter = snapshot.NewGeneric(ui.client)
-				}
-
-				err := snapshotter.Create(context.Background(), container.ContainerJSON, title, imageName)
-				pp.Stop()
-				snapshotLogs.Clear()
-				snapshotLogs.SetTextAlign(tview.AlignCenter)
-
-				message := "[green]Successfully created snapshot![-]"
-				if err != nil {
-					message = fmt.Sprintf("[red]Failed to create snapshot[-]\n%s", err)
-				}
-				fmt.Fprintln(snapshotLogs, message)
-
+				ui.createSnapshot(snapshotLogs, container, title, imageName, dbUser)
 				exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
 					ui.Pages.RemovePage("snapshot-status")
-					if err == nil {
-						ui.Pages.RemovePage("create-snapshot-form")
-						ui.app.SetFocus(ui.containerSelector)
-					} else {
-						ui.app.SetFocus(form)
-					}
+					ui.Pages.RemovePage("create-snapshot-form")
+					ui.app.SetFocus(ui.containerSelector)
 				})
 				modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
 				ui.app.SetFocus(exitButton)
@@ -244,6 +218,55 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 	form.SetCancelFunc(func() {
 		ui.Pages.RemovePage("create-snapshot-form")
 	})
+}
+
+// createSnapshot takes a snapshot of the given container. It attempts to use
+// the database aware snapshot implementation first, but falls back to a
+// generic snapshot if that fails.
+func (ui *createUI) createSnapshot(out *tview.TextView, container Container, title, imageName, dbUser string) {
+	fmt.Fprintf(out, "Creating snapshot..")
+	pp := NewProgressPrinter(out)
+	pp.Start()
+
+	// Take the database aware snapshot.
+	var snapshotter snapshot.Snapshotter
+	switch {
+	case container.HasPostgres:
+		snapshotter = snapshot.NewPostgres(ui.client, dbUser)
+	case container.HasMongo:
+		snapshotter = snapshot.NewMongo(ui.client)
+	case container.HasMySQL:
+		snapshotter = snapshot.NewMySQL(ui.client)
+	default:
+		snapshotter = snapshot.NewGeneric(ui.client)
+	}
+
+	err := snapshotter.Create(context.Background(), container.ContainerJSON, title, imageName)
+	pp.Stop()
+	out.Clear()
+	out.SetTextAlign(tview.AlignCenter)
+
+	if err == nil {
+		fmt.Fprintln(out, "[green]Successfully created snapshot![-]")
+		return
+	}
+	fmt.Fprintf(out, "[red]Failed to create snapshot[-]\n%s", err)
+
+	// Don't try snapshotting again if we already tried the generic snapshot.
+	if _, ok := snapshotter.(*snapshot.Generic); ok {
+		return
+	}
+
+	fmt.Fprintln(out)
+	fmt.Fprintf(out, "[yellow]Falling back to using a generic snapshot..")
+	pp.Start()
+	err = snapshot.NewGeneric(ui.client).Create(context.Background(), container.ContainerJSON, title, imageName)
+	pp.Stop()
+	if err == nil {
+		fmt.Fprintln(out, "[green]Successfully created snapshot![-]")
+	} else {
+		fmt.Fprintf(out, "[red]Failed to create snapshot[-]\n%s", err)
+	}
 }
 
 // Returns a new primitive which puts the provided primitive in the center and
