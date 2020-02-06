@@ -45,6 +45,9 @@ func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, ti
 	err = buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
+		bootCommands: []string{
+			"rm -rf /var/lib/postgresql/data/*",
+		},
 		buildInstructions: []string{
 			"COPY dump.sql /docker-entrypoint-initdb.d/dump.sql",
 		},

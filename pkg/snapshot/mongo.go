@@ -47,6 +47,9 @@ func (c *Mongo) Create(ctx context.Context, container types.ContainerJSON, title
 	err = buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
+		bootCommands: []string{
+			"rm -rf /data/db/*",
+		},
 		buildInstructions: []string{
 			"COPY dump.archive /dksnap/dump.archive",
 			"COPY load-dump.sh /docker-entrypoint-initdb.d/load-dump.sh",

@@ -42,6 +42,9 @@ func (c *MySQL) Create(ctx context.Context, container types.ContainerJSON, title
 	err = buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
+		bootCommands: []string{
+			"rm -rf /var/lib/mysql/*",
+		},
 		buildInstructions: []string{
 			"COPY dump.sql /docker-entrypoint-initdb.d/dump.sql",
 		},

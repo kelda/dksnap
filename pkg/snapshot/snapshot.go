@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	mountTypes "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 )
@@ -37,8 +38,14 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 	}
 	defer os.RemoveAll(buildContext)
 
-	var buildInstructions, bootInstructions []string
+	var buildInstructions, bootCommands []string
 	for i, mount := range container.Mounts {
+		// Skip host volumes so that we don't affect the files in them when we
+		// load the snapshot later.
+		if mount.Type == mountTypes.TypeBind {
+			continue
+		}
+
 		volumeTarReader, _, err := c.client.CopyFromContainer(ctx, container.ID, mount.Destination)
 		if err != nil {
 			return fmt.Errorf("dump volume %s: %w", mount.Destination, err)
@@ -56,15 +63,23 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 		stagePath := fmt.Sprintf("/dksnap/%d", i)
 		buildInstructions = append(buildInstructions,
 			fmt.Sprintf("ADD %s %s", filepath.Base(volumeTarFile.Name()), stagePath))
-		bootInstructions = append(bootInstructions,
-			fmt.Sprintf("rm -rf %s/* && cp -r %s/* %s", mount.Destination, stagePath, filepath.Dir(mount.Destination)))
-	}
 
-	var args []string
-	for _, arg := range container.Args {
-		args = append(args, fmt.Sprintf("%q", arg))
+		bootCommand := fmt.Sprintf(`
+# Load %[1]s.
+snapshotPath="%[0]s"
+volumePath="%[1]s"
+if [ ! -d "${volumePath}" ]; then
+  mkdir -p "${volumePath}"
+fi
+
+if [ ! -z $(ls -1qA "${volumePath}") ]; then
+  echo "Removing existing contents of ${volumePath}"
+  rm -rf ${volumePath}/*
+fi
+cp -R "${snapshotPath}/." "${volumePath}/.."
+`, mount.Destination, stagePath)
+		bootCommands = append(bootCommands, bootCommand)
 	}
-	buildInstructions = append(buildInstructions, fmt.Sprintf(`CMD [%s]`, strings.Join(args, ", ")))
 
 	fsCommit, err := c.client.ContainerCommit(ctx, container.ID, types.ContainerCommitOptions{
 		Pause: true,
@@ -75,10 +90,9 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 
 	err = buildImage(ctx, c.client, buildOptions{
 		baseImage:         fsCommit.ID,
-		oldEntrypoint:     container.Path,
 		context:           buildContext,
 		buildInstructions: buildInstructions,
-		bootInstructions:  bootInstructions,
+		bootCommands:      bootCommands,
 		title:             title,
 		imageNames:        []string{imageName},
 	})
@@ -90,27 +104,44 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 
 type buildOptions struct {
 	baseImage         string
-	oldEntrypoint     string
 	context           string
 	buildInstructions []string
-	bootInstructions  []string
+	bootCommands      []string
 	title             string
 	imageNames        []string
 	dumpPath          string
 }
 
 func buildImage(ctx context.Context, dockerClient *client.Client, opts buildOptions) error {
-	if len(opts.bootInstructions) != 0 {
+	if len(opts.bootCommands) != 0 {
+		baseImageInfo, _, err := dockerClient.ImageInspectWithRaw(ctx, opts.baseImage)
+		if err != nil {
+			return fmt.Errorf("get base image info: %w", err)
+		}
+
+		// Add a script that first runs the boot commands, then runs the
+		// original entrypoint.
 		bootScript := fmt.Sprintf(`#!/bin/sh
 %s
-exec %s $@
-`, strings.Join(opts.bootInstructions, " && "), opts.oldEntrypoint)
+
+exec %s "$@"
+`,
+			strings.Join(opts.bootCommands, "\n\n"),
+			strings.Join(quoteStrings(baseImageInfo.Config.Entrypoint), " "))
+
 		if err := ioutil.WriteFile(filepath.Join(opts.context, "entrypoint.sh"), []byte(bootScript), 0755); err != nil {
 			return fmt.Errorf("write entrypoint: %w", err)
 		}
 
-		opts.buildInstructions = append(opts.buildInstructions, "COPY entrypoint.sh /dksnap/entrypoint.sh")
-		opts.buildInstructions = append(opts.buildInstructions, `ENTRYPOINT ["/dksnap/entrypoint.sh"]`)
+		opts.buildInstructions = append(opts.buildInstructions,
+			"COPY entrypoint.sh /dksnap/entrypoint.sh",
+			`ENTRYPOINT ["/dksnap/entrypoint.sh"]`)
+
+		// Docker discards the original CMD when the entrypoint is changed, so
+		// we need to copy it over explicitly.
+		quotedCmds := quoteStrings(baseImageInfo.Config.Cmd)
+		opts.buildInstructions = append(opts.buildInstructions,
+			fmt.Sprintf(`CMD [%s]`, strings.Join(quotedCmds, ", ")))
 	}
 
 	for k, v := range map[string]string{
@@ -193,4 +224,11 @@ func makeTar(writer io.Writer, dir string) error {
 		return nil
 	})
 	return err
+}
+
+func quoteStrings(strs []string) (quoted []string) {
+	for _, str := range strs {
+		quoted = append(strs, fmt.Sprintf("%q", str))
+	}
+	return quoted
 }
