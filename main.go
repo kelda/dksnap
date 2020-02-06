@@ -15,6 +15,7 @@ func main() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Docker client: %s\n", err)
+		os.Exit(1)
 	}
 
 	app := tview.NewApplication()
