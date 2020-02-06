@@ -45,14 +45,14 @@ Watch the [demo](https://youtu.be/7Aaf5VCldLg), and recreate it yourself:
 
 ```
 # Download the demo.
-$ git clone https://github.com/kelda/dksnap.git
-$ cd dksnap/demo
+git clone https://github.com/kelda/dksnap.git
+cd dksnap/demo
 
 # Start the example application. You can access it in your browser at localhost:8080.
-$ docker-compose up -d
+docker-compose up -d
 
 # Use dksnap to create snapshots of the entries in the Mongo database.
-$ dksnap
+dksnap
 ```
 
 We also have [step-by-step instructions](./demo/README.md).
