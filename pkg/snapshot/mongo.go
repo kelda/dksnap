@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,25 +26,25 @@ func NewMongo(c *client.Client) Snapshotter {
 func (c *Mongo) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
-		return err
+		return fmt.Errorf("make build context dir: %w", err)
 	}
 	defer os.RemoveAll(buildContext)
 
 	dump, err := exec(ctx, c.client, container.ID, []string{"mongodump", "--archive"})
 	if err != nil {
-		return err
+		return fmt.Errorf("dump: %w", err)
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "dump.archive"), dump, 0644); err != nil {
-		return err
+		return fmt.Errorf("write dump: %w", err)
 	}
 
 	loadScript := []byte("mongorestore --drop --archive=/dksnap/dump.archive")
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "load-dump.sh"), loadScript, 0755); err != nil {
-		return err
+		return fmt.Errorf("write load script: %w", err)
 	}
 
-	return buildImage(ctx, c.client, buildOptions{
+	err = buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
 		buildInstructions: []string{
@@ -54,4 +55,8 @@ func (c *Mongo) Create(ctx context.Context, container types.ContainerJSON, title
 		imageNames: []string{imageName},
 		dumpPath:   "/dksnap/dump.archive",
 	})
+	if err != nil {
+		return fmt.Errorf("build image: %w", err)
+	}
+	return nil
 }

@@ -238,7 +238,7 @@ func (ui *infoUI) replaceContainer(ctx context.Context, old Container, snap *sna
 		Force: true,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("remove old container: %w", err)
 	}
 
 	containerConfig := old.Config
@@ -252,12 +252,12 @@ func (ui *infoUI) replaceContainer(ctx context.Context, old Container, snap *sna
 	}
 	createdContainer, err := ui.client.ContainerCreate(ctx, containerConfig, old.HostConfig, networkingConfig, old.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("create new container: %w", err)
 	}
 
 	err = ui.client.ContainerStart(ctx, createdContainer.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return err
+		return fmt.Errorf("start new container: %w", err)
 	}
 	return nil
 }
@@ -373,12 +373,12 @@ func (ui *infoUI) bootSnapshot(ctx context.Context, snap *snapshot.Snapshot) err
 	containerSpec := &container.Config{Image: image}
 	containerID, err := ui.client.ContainerCreate(ctx, containerSpec, nil, nil, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("create container: %w", err)
 	}
 
 	err = ui.client.ContainerStart(ctx, containerID.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return err
+		return fmt.Errorf("start container: %w", err)
 	}
 	return nil
 }
@@ -386,7 +386,7 @@ func (ui *infoUI) bootSnapshot(ctx context.Context, snap *snapshot.Snapshot) err
 func (ui *infoUI) syncSnapshots(ctx context.Context) error {
 	snapshots, err := snapshot.List(ctx, ui.client)
 	if err != nil {
-		return fmt.Errorf("list snapshots: %s", err)
+		return fmt.Errorf("list snapshots: %w", err)
 	}
 
 	ui.snapshots = snapshots

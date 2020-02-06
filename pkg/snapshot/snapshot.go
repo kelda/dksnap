@@ -33,7 +33,7 @@ func NewGeneric(c *client.Client) Snapshotter {
 func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
-		return err
+		return fmt.Errorf("make build context dir: %w", err)
 	}
 	defer os.RemoveAll(buildContext)
 
@@ -41,16 +41,16 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 	for i, mount := range container.Mounts {
 		volumeTarReader, _, err := c.client.CopyFromContainer(ctx, container.ID, mount.Destination)
 		if err != nil {
-			return err
+			return fmt.Errorf("dump volume %s: %w", mount.Destination, err)
 		}
 
 		volumeTarFile, err := ioutil.TempFile(buildContext, "dksnap-volume")
 		if err != nil {
-			return err
+			return fmt.Errorf("create volume dump %s: %w", mount.Destination, err)
 		}
 
 		if _, err := io.Copy(volumeTarFile, volumeTarReader); err != nil {
-			return err
+			return fmt.Errorf("write volume dump %s: %w", mount.Destination, err)
 		}
 
 		stagePath := fmt.Sprintf("/dksnap/%d", i)
@@ -70,10 +70,10 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 		Pause: true,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("commit container: %w", err)
 	}
 
-	return buildImage(ctx, c.client, buildOptions{
+	err = buildImage(ctx, c.client, buildOptions{
 		baseImage:         fsCommit.ID,
 		oldEntrypoint:     container.Path,
 		context:           buildContext,
@@ -82,6 +82,10 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 		title:             title,
 		imageNames:        []string{imageName},
 	})
+	if err != nil {
+		return fmt.Errorf("build image: %w", err)
+	}
+	return nil
 }
 
 type buildOptions struct {
@@ -102,7 +106,7 @@ func buildImage(ctx context.Context, dockerClient *client.Client, opts buildOpti
 exec %s $@
 `, strings.Join(opts.bootInstructions, " && "), opts.oldEntrypoint)
 		if err := ioutil.WriteFile(filepath.Join(opts.context, "entrypoint.sh"), []byte(bootScript), 0755); err != nil {
-			return err
+			return fmt.Errorf("write entrypoint: %w", err)
 		}
 
 		opts.buildInstructions = append(opts.buildInstructions, "COPY entrypoint.sh /dksnap/entrypoint.sh")
@@ -123,11 +127,11 @@ FROM %s
 `, opts.baseImage, strings.Join(opts.buildInstructions, "\n"))
 
 	if err := ioutil.WriteFile(filepath.Join(opts.context, "Dockerfile"), []byte(dockerfile), 0644); err != nil {
-		return err
+		return fmt.Errorf("write Dockerfile: %w", err)
 	}
 	var buildContextTar bytes.Buffer
 	if err := makeTar(&buildContextTar, opts.context); err != nil {
-		return err
+		return fmt.Errorf("tar build context: %w", err)
 	}
 
 	buildResp, err := dockerClient.ImageBuild(ctx, &buildContextTar, types.ImageBuildOptions{
@@ -135,7 +139,7 @@ FROM %s
 		Tags:       opts.imageNames,
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("start build: %w", err)
 	}
 	defer buildResp.Body.Close()
 
@@ -164,11 +168,12 @@ func makeTar(writer io.Writer, dir string) error {
 
 		relPath, err := filepath.Rel(dir, path)
 		if err != nil {
-			return err
+			return fmt.Errorf("get normalized path %q: %w", path, err)
 		}
+
 		header.Name = relPath
 		if err := tw.WriteHeader(header); err != nil {
-			return fmt.Errorf("write header: %s", err)
+			return fmt.Errorf("write header %q: %w", header.Name, err)
 		}
 
 		fileMode := fi.Mode()
@@ -178,12 +183,12 @@ func makeTar(writer io.Writer, dir string) error {
 
 		f, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("open file: %s", err)
+			return fmt.Errorf("open file %q: %w", header.Name, err)
 		}
 		defer f.Close()
 
 		if _, err := io.Copy(tw, f); err != nil {
-			return fmt.Errorf("write file: %s", err)
+			return fmt.Errorf("write file %q: %w", header.Name, err)
 		}
 		return nil
 	})

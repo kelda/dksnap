@@ -157,7 +157,9 @@ guidelines](CONTRIBUTING.md) to get started.
 
 ### Build
 
-`dksnap` uses Go Modules which were introduced in `go` version 1.11.
+`dksnap` requires being built with `go` version 1.13 or later.
+
+It uses Go Modules, and [error wrapping](https://blog.golang.org/go1.13-errors).
 
 ```
 git clone https://github.com/kelda/dksnap

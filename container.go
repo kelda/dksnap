@@ -53,7 +53,7 @@ func NewContainerSelector(client *client.Client, selectedFunc func(Container), d
 func (cs *ContainerSelector) Sync(ctx context.Context) error {
 	snapshots, err := snapshot.List(ctx, cs.client)
 	if err != nil {
-		return err
+		return fmt.Errorf("list snapshots: %w", err)
 	}
 
 	snapshotByImageID := map[string]*snapshot.Snapshot{}
@@ -63,14 +63,14 @@ func (cs *ContainerSelector) Sync(ctx context.Context) error {
 
 	containerIDs, err := cs.client.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
-		return err
+		return fmt.Errorf("list containers: %w", err)
 	}
 
 	var containers []Container
 	for _, containerID := range containerIDs {
 		containerInfo, err := cs.client.ContainerInspect(ctx, containerID.ID)
 		if err != nil {
-			return err
+			return fmt.Errorf("inspect container: %w", err)
 		}
 
 		var hasPostgres, hasMongo, hasMySQL bool

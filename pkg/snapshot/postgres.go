@@ -29,20 +29,20 @@ func NewPostgres(c *client.Client, dbUser string) Snapshotter {
 func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error {
 	buildContext, err := ioutil.TempDir("", "dksnap-context")
 	if err != nil {
-		return err
+		return fmt.Errorf("make build context dir: %w", err)
 	}
 	defer os.RemoveAll(buildContext)
 
 	dump, err := exec(ctx, c.client, container.ID, []string{"pg_dump", "-U", c.dbUser})
 	if err != nil {
-		return err
+		return fmt.Errorf("dump: %w", err)
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "dump.sql"), dump, 0644); err != nil {
-		return err
+		return fmt.Errorf("write dump: %w", err)
 	}
 
-	return buildImage(ctx, c.client, buildOptions{
+	err = buildImage(ctx, c.client, buildOptions{
 		baseImage: container.Image,
 		context:   buildContext,
 		buildInstructions: []string{
@@ -52,6 +52,10 @@ func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, ti
 		imageNames: []string{imageName},
 		dumpPath:   "/docker-entrypoint-initdb.d/dump.sql",
 	})
+	if err != nil {
+		return fmt.Errorf("build image: %w", err)
+	}
+	return nil
 }
 
 func exec(ctx context.Context, dockerClient *client.Client, container string, cmd []string) ([]byte, error) {
