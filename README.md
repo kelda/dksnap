@@ -7,7 +7,7 @@
 
 [![Demo Gif](https://kelda.io/img/dksnap/dksnap-demo2.gif)](https://youtu.be/7Aaf5VCldLg)
 
-### Docker Snapshots for Test Databases
+## Docker Snapshots for Dev & Test Data
 
 `dksnap` creates, inspects, and runs snapshots of Docker containers.  Often
 when testing locally, we run containerized versions of databases like Mongo,
