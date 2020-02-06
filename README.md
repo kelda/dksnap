@@ -9,12 +9,11 @@
 
 ### Docker Snapshots for Test Databases
 
-`dksnap` creates, inspects, and runs snapshots of docker containers.
-Often when testing locally, we use a container like [mongo](https://hub.docker.com/_/mongo) or
-[postgres](https://hub.docker.com/_/postgres) to mock out a database.  Setting
-up such a container with exactly the data you need for a particular set of
-tests can be quite a chore.  Especially if it needs to be done multiple times a
-day.
+`dksnap` creates, inspects, and runs snapshots of Docker containers.  Often
+when testing locally, we run containerized versions of databases like Mongo,
+Postgres, MySQL, and others.  Setting up such a container with exactly the
+data you need for a particular set of tests can be quite a chore.  Especially
+if it needs to be done multiple times a day.
 
 `dksnap` allows you to create and manage snapshots of container images. This
 allows you to:
@@ -62,20 +61,20 @@ We also have [step-by-step instructions](./demo/README.md).
 ### Create Snapshot
 ![Create a Snapshot](https://kelda.io/img/dksnap/create-snapshot.gif)
 
-Create a snapshot of **any** running docker container. `dksnap` works with any
+Create a snapshot of **any** running Docker container. `dksnap` works with any
 Docker container, but has extra features for select databases.
 * Snapshots are volume aware.  They will capture data in volumes as well as in
   the container image.
 * Snapshots are database aware.  When snapshotting databases that implement the
   [plugin interface](#database-awareness), `dksnap` will politely ask the database process to
-  dump its contents before creating a docker image.
+  dump its contents before creating a Docker image.
 
 ### Replace Container
 ![](https://kelda.io/img/dksnap/swap-snapshot.gif)
 
-Replace a running docker container with a snapshot taken in the past.  `dksnap`
+Replace a running Docker container with a snapshot taken in the past.  `dksnap`
 will automatically shut down the running container, boot the snapshot image,
-and restart the container using the same docker command arguments.
+and restart the container using the same Docker command arguments.
 
 ### View Snapshots
 ![](https://kelda.io/img/dksnap/view-history.gif)
@@ -88,6 +87,12 @@ snapshots you've created.  You can:
 
 ### Other Features
 
+#### Works With Any Container
+
+By default, `dksnap` creates snapshots by committing the container's
+filesystem with `docker commit`, and dumping the contents of all attached
+volumes.
+
 #### Database Awareness
 `dksnap` is database aware, meaning it knows how to nicely dump and
 restore database contents for the following databases:
@@ -97,11 +102,11 @@ restore database contents for the following databases:
 It has a plugin architecture making it easy to add more databases in the
 future.
 
-**Note:** For containers that aren't among the supported databases, it falls back to
-capturing the filesystem.
+When `dksnap` detects a supported database, it automatically switches to the
+database-specific approach.
 
 #### Docker Images
-`dksnap` images are simply docker images with some additional metadata.  This
+`dksnap` images are simply Docker images with some additional metadata.  This
 means they can be viewed and manipulated using the standard `docker` command
 line tools.
 
@@ -118,28 +123,16 @@ container’s state is saved.
 
 ## FAQ
 
-#### How does it work?
-
-By default, `dksnap` creates a snapshot by:
-
-1. Committing the container's filesystem with `docker commit`.
-1. Dumping the contents of all attached volumes.
-1. Creating a new Docker image that loads the dumped data at boot.
-
-`dksnap` also has first-class support for select databases, in which case it
-runs the database-specific dump command, and creates a Docker image that loads
-the dump at boot.
-
 #### How is this different than `docker commit`?
-`dksnap` uses docker commit for its generic snapshot approach to capture the
+`dksnap` uses Docker commit for its generic snapshot approach to capture the
 container’s filesystem. However, `docker commit` doesn't capture volumes, so it
 can’t be used with database images. It also doesn't track metadata like
 snapshot title and version.
 
-#### How is this different than a docker image?
-`dksnap` uses docker images as the storage format for its snapshots, which makes
+#### How is this different than a Docker image?
+`dksnap` uses Docker images as the storage format for its snapshots, which makes
 them fully compatible with all of the things you would normally do with an
-image (run, push, delete, etc). You could handcraft docker images to mimic
+image (run, push, delete, etc). You could handcraft Docker images to mimic
 `dksnap` snapshots, but `dksnap` makes it easy to create them from running
 containers.
 
@@ -152,7 +145,7 @@ Not currently -- it's on the roadmap.  Let us know if this would be useful.
 
 ## Roadmap
 
-* Automated snapshot creation from production and staging databases.
+* Automated snapshot creation from production and staging databases in CI.
 * A non-graphical CLI interface that's scriptable.
 * Native support for additional databases.
 * Snapshot of CPU and RAM state as well.
