@@ -14,6 +14,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/jsonmessage"
 )
 
 // Generic creates snapshots by saving the container's filesystem with `docker
@@ -55,7 +56,6 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 		stagePath := fmt.Sprintf("/dksnap/%d", i)
 		buildInstructions = append(buildInstructions,
 			fmt.Sprintf("ADD %s %s", filepath.Base(volumeTarFile.Name()), stagePath))
-		// What effect will wiping db have?
 		bootInstructions = append(bootInstructions,
 			fmt.Sprintf("rm -rf %s/* && cp -r %s/* %s", mount.Destination, stagePath, filepath.Dir(mount.Destination)))
 	}
@@ -138,7 +138,13 @@ FROM %s
 		return err
 	}
 	defer buildResp.Body.Close()
-	io.Copy(ioutil.Discard, buildResp.Body)
+
+	// Block until the build completes, and return any errors that happen
+	// during the build.
+	streamErr := jsonmessage.DisplayJSONMessagesStream(buildResp.Body, ioutil.Discard, 0, false, nil)
+	if streamErr != nil {
+		return fmt.Errorf("build image: %w", streamErr)
+	}
 	return nil
 }
 
