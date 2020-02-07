@@ -1,31 +1,23 @@
-<div>
-  <h2><img src="https://kelda.io/img/dksnap/logo.svg" width="350" height="100%"></br>
-  Docker Snapshots for Development and Test Data</h2>
+# dksnap
+[![Build Status](https://travis-ci.org/kelda/dksnap.svg?branch=master)](https://travis-ci.org/kelda/dksnap)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kelda/dksnap)](https://goreportcard.com/report/github.com/kelda/dksnap)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Slack](https://kelda.io/img/dksnap/slack-badge.svg)](http://slack.kelda.io)
+[![Made by Kelda](https://kelda.io/img/dksnap/love-badge.svg)](https://kelda.io)<br/>
+[Install](#install)&nbsp;&nbsp;|&nbsp;&nbsp;
+[Key Features](#key-features)&nbsp;&nbsp;|&nbsp;&nbsp;
+[FAQ](#faq)&nbsp;&nbsp;|&nbsp;&nbsp;
+[Roadmap](#roadmap)&nbsp;&nbsp;|&nbsp;&nbsp;
+[Contributing](#contributing)<br/>
 
-  [![Build Status](https://travis-ci.org/kelda/dksnap.svg?branch=master)](https://travis-ci.org/kelda/dksnap)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/kelda/dksnap)](https://goreportcard.com/report/github.com/kelda/dksnap)
-  [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-  [![Slack](https://kelda.io/img/dksnap/slack-badge.svg)](http://slack.kelda.io)
-  [![Made by Kelda](https://kelda.io/img/dksnap/love-badge.svg)](https://kelda.io)<br/>
-  [Install](#install)&nbsp;&nbsp;|&nbsp;&nbsp;
-  [Key Features](#key-features)&nbsp;&nbsp;|&nbsp;&nbsp;
-  [FAQ](#faq)&nbsp;&nbsp;|&nbsp;&nbsp;
-  [Roadmap](#roadmap)&nbsp;&nbsp;|&nbsp;&nbsp;
-  [Contributing](#contributing)<br/>
-</div>
+#### `dksnap` creates, views, and runs snapshots of Docker containers.
+When testing locally we often use containers with *test data*. `dksnap` allows
+you to snapshot those containers at a good state, and roll back or forward as
+needed.
 
-<br/>
+For a full description check out this [blogpost](https://kelda.io/blog/dksnap-docker-snapshots-for-development-and-test-data).
 
-**`dksnap` [creates](#create-snapshots), [views](#view-snapshots), and [runs](#replace-running-containers) snapshots of Docker containers.**
-
-When testing locally developers often use containers with *test data*. `dksnap`
-allows you to snapshot those containers at a good state, and roll back or
-forward as needed.
-
-For a full description of why we built this, check out this
-[blogpost](https://kelda.io/todo).
-
-[<img src="https://kelda.io/img/dksnap/dksnap-demo3.gif" width="85%" alt="Demo gif">](https://youtu.be/fmYGfs632-g)
+[<img src="https://kelda.io/img/dksnap/dksnap-demo3.gif" width="75%" >](https://youtu.be/fmYGfs632-g)
 
 # Install
 Install on MacOS or Linux:
@@ -56,15 +48,15 @@ dksnap
 # Key Features
 
 ## Create Snapshots
-<img src="https://kelda.io/img/dksnap/create-snapshot2.gif" width="450" height="100%">
+<img src="https://kelda.io/img/dksnap/create-snapshot.png" width="450" height="100%">
 
 Create a snapshot of any running Docker container. `dksnap` works with any
 container, but has extra features for select databases.
 * Snapshots are volume aware.  They will capture data in volumes as well as in
   the container image.
 * Snapshots are database aware.  When snapshotting databases that implement the
-  [plugin interface](./pkg/snapshot/types.go), `dksnap` will politely ask the database process to
-  dump its contents before creating a Docker image.
+  [plugin interface](./pkg/snapshot/types.go), `dksnap` will politely ask the
+  database process to dump its contents before creating a Docker image.
 
 ## View Snapshots
 <img src="https://kelda.io/img/dksnap/diff.png" width="450" height="100%">
@@ -120,7 +112,6 @@ container’s filesystem. However, `docker commit` has distinct limitations:
   images.
 * It isn't database aware.  It doesn't politely save/restore database state
   meaning it's prone to creating corrupted database images.
-* It doesn't have database aware views of snapshots and their relationships.
 
 #### How is this different than a Docker image?
 `dksnap` uses Docker images as the storage format for its snapshots, which
@@ -128,14 +119,6 @@ makes them fully compatible with all of the things you would normally do with
 an image (run, push, delete, etc). You could handcraft Docker images to mimic
 `dksnap` snapshots, but `dksnap` makes it easy to create them from running
 containers.
-
-#### Is it ready to use?
-`dksnap` is in **alpha**. It's ready for daily use, but still under heavy
-development, so expect the occasional bug.  Please report any
-[issues](https://github.com/kelda/dksnap/issues) you may run into.
-
-####  Does `dksnap` capture CPU and RAM?
-Not currently -- it's on the roadmap.  Let us know if this would be useful.
 
 # Roadmap
 * Automated snapshot creation from production and staging databases in CI.
