@@ -14,7 +14,7 @@ import (
 )
 
 // Postgres creates snapshots for Postgres containers. It dumps the
-// database using pg_dump.
+// database using pg_dumpall.
 type Postgres struct {
 	client *client.Client
 	dbUser string
@@ -33,12 +33,21 @@ func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, ti
 	}
 	defer os.RemoveAll(buildContext)
 
-	dump, err := exec(ctx, c.client, container.ID, []string{"pg_dump", "-U", c.dbUser})
+	dump, err := exec(ctx, c.client, container.ID, []string{"pg_dumpall", "-U", c.dbUser})
 	if err != nil {
 		return fmt.Errorf("dump: %w", err)
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "dump.sql"), dump, 0644); err != nil {
+		return fmt.Errorf("write dump: %w", err)
+	}
+
+	// Load the dump from a script so that errors are ignored.
+	// Errors are expected with the current dump file if the dump contains the
+	// same user as the POSTGRES_USER environment variable.
+	loadScript := []byte(`#!/bin/bash
+psql --username "${POSTGRES_USER:-postgres}" --no-password < /dksnap-dump.sql`)
+	if err := ioutil.WriteFile(filepath.Join(buildContext, "load-dump.sh"), loadScript, 0755); err != nil {
 		return fmt.Errorf("write dump: %w", err)
 	}
 
@@ -49,7 +58,8 @@ func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, ti
 			"rm -rf /var/lib/postgresql/data/*",
 		},
 		buildInstructions: []string{
-			"COPY dump.sql /docker-entrypoint-initdb.d/dump.sql",
+			"COPY load-dump.sh /docker-entrypoint-initdb.d/load-dump.sh",
+			"COPY dump.sql /dksnap-dump.sql",
 		},
 		title:      title,
 		imageNames: []string{imageName},

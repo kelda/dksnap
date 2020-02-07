@@ -9,7 +9,7 @@ import (
 
 // Snapshotter defines the interface for creating snapshots. Implementations
 // may make assumptions about the type of container that is being snapshotted.
-// For example, the Postgres snapshotter shells out to `pg_dump`.
+// For example, the Postgres snapshotter shells out to `pg_dumpall`.
 type Snapshotter interface {
 	Create(ctx context.Context, container types.ContainerJSON, title, imageName string) error
 }
