@@ -25,9 +25,7 @@ forward as needed.
 For a full description of why we built this, check out this
 [blogpost](https://kelda.io/todo).
 
-<br/>
-
-[<img src="https://kelda.io/img/dksnap/dksnap-demo3.gif" width="100%" height="100%">](https://youtu.be/fmYGfs632-g)
+[<img src="https://kelda.io/img/dksnap/dksnap-demo3.gif" width="85%" >](https://youtu.be/fmYGfs632-g)
 
 # Install
 Install on MacOS or Linux:
