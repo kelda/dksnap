@@ -26,6 +26,12 @@ const (
 	// DumpPathLabel is the label added to Docker images to track the path
 	// within the container of a dump representing the state of the database.
 	DumpPathLabel = "dksnap.dump-path"
+
+	// BaseEntrypointLabel is the label added to Docker images to track the
+	// original entrypoint of a Docker image. dksnap overwrites the entrypoint
+	// to injects its boot logic, so we must keep track of the original
+	// entrypoint separately in order for snapshots of snapshots to work.
+	BaseEntrypointLabel = "dksnap.base-entrypoint"
 )
 
 // Snapshot represents a snapshot of a container. It can be booted by running

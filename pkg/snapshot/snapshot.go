@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -110,21 +111,28 @@ type buildOptions struct {
 }
 
 func buildImage(ctx context.Context, dockerClient *client.Client, opts buildOptions) error {
-	if len(opts.bootCommands) != 0 {
-		baseImageInfo, _, err := dockerClient.ImageInspectWithRaw(ctx, opts.baseImage)
-		if err != nil {
-			return fmt.Errorf("get base image info: %w", err)
-		}
+	baseImageInfo, _, err := dockerClient.ImageInspectWithRaw(ctx, opts.baseImage)
+	if err != nil {
+		return fmt.Errorf("get base image info: %w", err)
+	}
 
-		// Add a script that first runs the boot commands, then runs the
-		// original entrypoint.
+	baseEntrypoint := baseImageInfo.Config.Entrypoint
+	if baseEntrypointJSON, ok := baseImageInfo.Config.Labels[BaseEntrypointLabel]; ok {
+		if err := json.Unmarshal([]byte(baseEntrypointJSON), &baseEntrypoint); err != nil {
+			return fmt.Errorf("malformed entrypoint value %s: %w", baseEntrypointJSON, err)
+		}
+	}
+
+	// Add a script that first runs the boot commands, then runs the
+	// original entrypoint.
+	if len(opts.bootCommands) != 0 {
 		bootScript := fmt.Sprintf(`#!/bin/sh
 %s
 
 exec %s "$@"
 `,
 			strings.Join(opts.bootCommands, "\n\n"),
-			strings.Join(quoteStrings(baseImageInfo.Config.Entrypoint), " "))
+			strings.Join(quoteStrings(baseEntrypoint), " "))
 
 		if err := ioutil.WriteFile(filepath.Join(opts.context, "entrypoint.sh"), []byte(bootScript), 0755); err != nil {
 			return fmt.Errorf("write entrypoint: %w", err)
@@ -141,10 +149,16 @@ exec %s "$@"
 			fmt.Sprintf(`CMD [%s]`, strings.Join(quotedCmds, ", ")))
 	}
 
+	baseEntrypointJSON, err := json.Marshal(baseEntrypoint)
+	if err != nil {
+		return fmt.Errorf("marshal entrypoint: %w", err)
+	}
+
 	for k, v := range map[string]string{
-		TitleLabel:    opts.title,
-		DumpPathLabel: opts.dumpPath,
-		CreatedLabel:  time.Now().Format(time.RFC3339),
+		TitleLabel:          opts.title,
+		DumpPathLabel:       opts.dumpPath,
+		CreatedLabel:        time.Now().Format(time.RFC3339),
+		BaseEntrypointLabel: string(baseEntrypointJSON),
 	} {
 		opts.buildInstructions = append(opts.buildInstructions, fmt.Sprintf("LABEL %q=%q", k, v))
 	}
