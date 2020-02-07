@@ -55,7 +55,6 @@ docker-compose up -d
 dksnap
 ```
 
-
 # Key Features
 
 ## Create Snapshots
@@ -87,36 +86,34 @@ snapshots you've created.  You can:
 ## Other Features
 
 ### Works With Any Container
-
 By default, `dksnap` creates snapshots by committing the container's
 filesystem with `docker commit`, and dumping the contents of all attached
 volumes.
 
 ### Database Awareness
-`dksnap` is database aware, meaning it knows how to nicely dump and
-restore database contents for the following databases:
+`dksnap` is database aware, meaning it knows how to politely dump and
+restore and diff database contents for the following databases:
 * Mongo
 * Postgres
 * MySQL
 
 It has a plugin architecture making it easy to add more databases in the
-future.
+future.  Contributions welcome!
 
 ### Docker Images
-`dksnap` images are simply Docker images with some additional metadata.  This
+`dksnap` images are simply `docker` images with some additional metadata.  This
 means they can be viewed and manipulated using the standard `docker` command
 line tools.
 
 ### Share Snapshots
-Because `dksnap` stores all of the snapshot information in a `docker` image,
-you can share your snapshot by pushing and pulling to Docker registries just
-like you would any other Docker container.
+`dksnap` stores all of the snapshot information in a `docker` image, so you can
+share your snapshot by pushing it to a Docker registry just like you would any
+other container image.
 
 ### Volume Awareness
 Snapshots are volume aware. The official database images all store their data
-in volumes (for good reason) which `docker commit` does not capture.  `dksnap`
-saves your volumes as well as the container’s filesystem so that all of the
-container’s state is saved.
+in volumes  which `docker commit` does not capture.  `dksnap` saves volumes in
+addition to the container filesystem.
 
 # FAQ
 
@@ -145,20 +142,17 @@ development, so expect the occasional bug.  Please report any
 Not currently -- it's on the roadmap.  Let us know if this would be useful.
 
 # Roadmap
-
 * Automated snapshot creation from production and staging databases in CI.
 * A non-graphical CLI interface that's scriptable.
 * Native support for additional databases.
-* Snapshot of CPU and RAM state as well.
+* Snapshot of CPU and RAM state.
 
 # Contributing
-
 `dksnap` is still in alpha and under heavy development.  Contributions are very
 much welcome so please get involved.  Check out the [contribution
 guidelines](CONTRIBUTING.md) to get started.
 
 ### Build
-
 `dksnap` requires being built with `go` version 1.13 or later.
 
 It uses Go Modules, and [error wrapping](https://blog.golang.org/go1.13-errors).
