@@ -67,7 +67,7 @@ container, but has extra features for select databases.
   dump its contents before creating a Docker image.
 
 ## View Snapshots
-<img src="https://kelda.io/img/dksnap/view-history.png" width="450" height="100%">
+<img src="https://kelda.io/img/dksnap/view-history2.png" width="450" height="100%">
 
 `dksnap` includes a terminal browser that provides a tree view of all your
 snapshots along with diffs showing how they've changed over time.
