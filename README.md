@@ -114,7 +114,7 @@ addition to the container filesystem.
 # FAQ
 
 #### How is this different than `docker commit`?
-`dksnap` uses Docker commit for its generic snapshot approach to capture the
+`dksnap` uses `docker commit` for its generic snapshot approach to capture the
 container’s filesystem. However, `docker commit` has distinct limitations:
 * It doesn't capture volumes, so it can't be used with most database docker
   images.
