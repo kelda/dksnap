@@ -213,6 +213,7 @@ func (ui *infoUI) popupReplaceContainer(snap *snapshot.Snapshot) {
 				exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
 					ui.Pages.RemovePage("replace-status")
 					ui.Pages.RemovePage("replace-container-modal")
+					ui.app.SetFocus(ui.snapshotListView)
 				})
 				modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
 				ui.app.SetFocus(exitButton)
