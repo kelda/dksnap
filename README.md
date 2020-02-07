@@ -66,20 +66,18 @@ container, but has extra features for select databases.
   [plugin interface](./pkg/snapshot/types.go), `dksnap` will politely ask the database process to
   dump its contents before creating a Docker image.
 
+## View Snapshots
+<img src="https://kelda.io/img/dksnap/view-history.png" width="450" height="100%">
+
+`dksnap` includes a terminal browser that provides a tree view of all your
+snapshots along with diffs showing how they've changed over time.
+
 ## Replace Running Containers
 <img src="https://kelda.io/img/dksnap/replace-snapshot.gif" width="450" height="100%">
 
 Replace a running Docker container with a snapshot taken in the past.  `dksnap`
 will automatically shut down the running container, boot the snapshot image,
 and restart the container using the same Docker command arguments.
-
-## View Snapshots
-<img src="https://kelda.io/img/dksnap/view-history2.gif" width="450" height="100%">
-
-`dksnap` includes a terminal browser allowing you to view and manipulate the
-snapshots you've created.  You can:
-* See a **tree** of all the snapshots and how they relate to each other.
-* See the **diff** between a snapshot and its parent.
 
 ## Other Features
 
