@@ -271,6 +271,12 @@ func (ui *infoUI) renderDiff(diffView *tview.TextView, oldSnap, newSnap *snapsho
 		return
 	}
 
+	if oldSnap.BaseImage {
+		diffView.SetText("Diffing against the non-snapshot base image is not currently supported.\n" +
+			"Try diffing against another snapshot created from this image.")
+		return
+	}
+
 	fmt.Fprintf(diffView, "Generating diff..")
 	pp := NewProgressPrinter(diffView)
 	pp.Start()
