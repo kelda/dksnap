@@ -66,16 +66,13 @@ func (c *Generic) Create(ctx context.Context, container types.ContainerJSON, tit
 
 		bootCommand := fmt.Sprintf(`
 # Load %[1]s.
-snapshotPath="%[0]s"
+snapshotPath="%[2]s"
 volumePath="%[1]s"
 if [ ! -d "${volumePath}" ]; then
   mkdir -p "${volumePath}"
 fi
 
-if [ ! -z $(ls -1qA "${volumePath}") ]; then
-  echo "Removing existing contents of ${volumePath}"
-  rm -rf ${volumePath}/*
-fi
+rm -rf ${volumePath}/*
 cp -R "${snapshotPath}/." "${volumePath}/.."
 `, mount.Destination, stagePath)
 		bootCommands = append(bootCommands, bootCommand)
@@ -228,7 +225,7 @@ func makeTar(writer io.Writer, dir string) error {
 
 func quoteStrings(strs []string) (quoted []string) {
 	for _, str := range strs {
-		quoted = append(strs, fmt.Sprintf("%q", str))
+		quoted = append(quoted, fmt.Sprintf("%q", str))
 	}
 	return quoted
 }
