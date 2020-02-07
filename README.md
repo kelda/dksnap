@@ -1,26 +1,26 @@
-<div align="center">
-  <img src="https://kelda.io/img/dksnap/logo.svg" width="400" height="100%">
-  <h1>Docker Snapshots for Dev & Test Data</h1>
+<div>
+  <h2><img src="https://kelda.io/img/dksnap/logo.svg" width="350" height="100%"></br>
+  Docker Snapshots for Development and Test Data</h2>
 
   [![Build Status](https://travis-ci.org/kelda/dksnap.svg?branch=master)](https://travis-ci.org/kelda/dksnap)
   [![Go Report Card](https://goreportcard.com/badge/github.com/kelda/dksnap)](https://goreportcard.com/report/github.com/kelda/dksnap)
   [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
   [![Slack](https://kelda.io/img/dksnap/slack-badge.svg)](http://slack.kelda.io)
-  [![Made by Kelda](https://kelda.io/img/dksnap/love-badge.svg)](https://kelda.io)
-
-  [Create Snapshots](#create-snapshots)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[View Snapshots](#view-snapshots)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[Run Snapshots](#replace-running-containers)<br/>
-  [Demo](#demo)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[FAQ](#faq)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[Roadmap](#roadmap)<br/>
-
+  [![Made by Kelda](https://kelda.io/img/dksnap/love-badge.svg)](https://kelda.io)<br/>
+  [Install](#install)&nbsp;&nbsp;|&nbsp;&nbsp;
+  [Key Features](#key-features)&nbsp;&nbsp;|&nbsp;&nbsp;
+  [FAQ](#faq)&nbsp;&nbsp;|&nbsp;&nbsp;
+  [Roadmap](#roadmap)&nbsp;&nbsp;|&nbsp;&nbsp;
+  [Contributing](#contributing)<br/>
 </div>
 
 <br/>
 
-**`dksnap` [creates](#create-snapshots), [inspects](#view-snapshots), and [runs](#replace-running-containers) snapshots of Docker containers**
+**`dksnap` [creates](#create-snapshots), [views](#view-snapshots), and [runs](#replace-running-containers) snapshots of Docker containers.**
 
-Often when testing locally, we run containerized versions of databases like
-Mongo, Postgres, and MySQL.  Setting up such a container with exactly the data
-you need for a particular set of tests can be quite a chore.  Especially if it
-needs to be done multiple times a day.
+When testing locally developers often use containers with *test data*. `dksnap`
+allows you to snapshot those containers at a good state, and roll back or
+forward as needed.
 
 For a full description of why we built this, check out this
 [blogpost](https://kelda.io/todo).
@@ -122,19 +122,21 @@ container’s state is saved.
 
 #### How is this different than `docker commit`?
 `dksnap` uses Docker commit for its generic snapshot approach to capture the
-container’s filesystem. However, `docker commit` doesn't capture volumes, so it
-can’t be used with database images. It also doesn't track metadata like
-snapshot title and version.
+container’s filesystem. However, `docker commit` has distinct limitations:
+* It doesn't capture volumes, so it can't be used with most database docker
+  images.
+* It isn't database aware.  It doesn't politely save/restore database state
+  meaning it's prone to creating corrupted database images.
+* It doesn't have database aware views of snapshots and their relationships.
 
 #### How is this different than a Docker image?
-`dksnap` uses Docker images as the storage format for its snapshots, which makes
-them fully compatible with all of the things you would normally do with an
-image (run, push, delete, etc). You could handcraft Docker images to mimic
+`dksnap` uses Docker images as the storage format for its snapshots, which
+makes them fully compatible with all of the things you would normally do with
+an image (run, push, delete, etc). You could handcraft Docker images to mimic
 `dksnap` snapshots, but `dksnap` makes it easy to create them from running
 containers.
 
 #### Is it ready to use?
-
 `dksnap` is in **alpha**. It's ready for daily use, but still under heavy
 development, so expect the occasional bug.  Please report any
 [issues](https://github.com/kelda/dksnap/issues) you may run into.
