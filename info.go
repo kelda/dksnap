@@ -199,22 +199,24 @@ func (ui *infoUI) popupReplaceContainer(snap *snapshot.Snapshot) {
 
 		go func() {
 			err := ui.replaceContainer(context.Background(), container, snap)
-			pp.Stop()
-			logs.Clear()
-			logs.SetTextAlign(tview.AlignCenter)
+			ui.app.QueueUpdateDraw(func() {
+				pp.Stop()
+				logs.Clear()
+				logs.SetTextAlign(tview.AlignCenter)
 
-			message := "[green]Successfully replaced container![-]"
-			if err != nil {
-				message = fmt.Sprintf("[red]Failed to replace container:[-]\n%s", err)
-			}
-			fmt.Fprintln(logs, message)
+				message := "[green]Successfully replaced container![-]"
+				if err != nil {
+					message = fmt.Sprintf("[red]Failed to replace container:[-]\n%s", err)
+				}
+				fmt.Fprintln(logs, message)
 
-			exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
-				ui.Pages.RemovePage("replace-status")
-				ui.Pages.RemovePage("replace-container-modal")
+				exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
+					ui.Pages.RemovePage("replace-status")
+					ui.Pages.RemovePage("replace-container-modal")
+				})
+				modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
+				ui.app.SetFocus(exitButton)
 			})
-			modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
-			ui.app.SetFocus(exitButton)
 		}()
 	}
 	doneFunc := func(_ tcell.Key) {
@@ -280,7 +282,9 @@ func (ui *infoUI) renderDiff(diffView *tview.TextView, oldSnap, newSnap *snapsho
 			return
 		}
 
-		diffView.SetText(colorizeDiff(diff))
+		ui.app.QueueUpdateDraw(func() {
+			diffView.SetText(colorizeDiff(diff))
+		})
 	}()
 }
 

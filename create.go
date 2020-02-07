@@ -116,13 +116,15 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 
 			go func() {
 				ui.createSnapshot(snapshotLogs, container, title, imageName, dbUser)
-				exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
-					ui.Pages.RemovePage("snapshot-status")
-					ui.Pages.RemovePage("create-snapshot-form")
-					ui.app.SetFocus(ui.containerSelector)
+				ui.app.QueueUpdateDraw(func() {
+					exitButton := tview.NewButton("OK").SetSelectedFunc(func() {
+						ui.Pages.RemovePage("snapshot-status")
+						ui.Pages.RemovePage("create-snapshot-form")
+						ui.app.SetFocus(ui.containerSelector)
+					})
+					modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
+					ui.app.SetFocus(exitButton)
 				})
-				modalContents.AddItem(center(exitButton, 4, 1), 0, 1, true)
-				ui.app.SetFocus(exitButton)
 			}()
 		})
 
