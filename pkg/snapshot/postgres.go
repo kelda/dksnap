@@ -63,7 +63,7 @@ psql --username "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-postgres}" --no-
 		},
 		title:      title,
 		imageNames: []string{imageName},
-		dumpPath:   "/docker-entrypoint-initdb.d/dump.sql",
+		dumpPath:   "/dksnap-dump.sql",
 	})
 	if err != nil {
 		return fmt.Errorf("build image: %w", err)
