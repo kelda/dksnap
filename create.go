@@ -137,7 +137,7 @@ func (ui *createUI) promptCreateSnapshot(container Container) {
 	}
 
 	// We need the user to dump as when taking Postgres snapshots.
-	if container.HasPostgres {
+	if !*forceGenericSnapshot && container.HasPostgres {
 		dbUser, ok := getEnv(container.Config.Env, "POSTGRES_USER")
 		if !ok {
 			dbUser = "postgres"
@@ -233,11 +233,11 @@ func (ui *createUI) createSnapshot(out *tview.TextView, container Container, tit
 	// Take the database aware snapshot.
 	var snapshotter snapshot.Snapshotter
 	switch {
-	case container.HasPostgres:
+	case !*forceGenericSnapshot && container.HasPostgres:
 		snapshotter = snapshot.NewPostgres(ui.client, dbUser)
-	case container.HasMongo:
+	case !*forceGenericSnapshot && container.HasMongo:
 		snapshotter = snapshot.NewMongo(ui.client)
-	case container.HasMySQL:
+	case !*forceGenericSnapshot && container.HasMySQL:
 		snapshotter = snapshot.NewMySQL(ui.client)
 	default:
 		snapshotter = snapshot.NewGeneric(ui.client)

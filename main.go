@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -11,7 +12,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+var forceGenericSnapshot = flag.Bool("force-generic", false, "disable database aware snapshots")
+
 func main() {
+	flag.Parse()
+
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Docker client: %s\n", err)
