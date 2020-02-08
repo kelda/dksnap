@@ -48,7 +48,7 @@ dksnap
 # Key Features
 
 ## Create Snapshots
-<img src="https://kelda.io/img/dksnap/create-snapshot.png" width="450" height="100%">
+<img src="https://kelda.io/img/dksnap/create-snapshot2.png" width="450" height="100%">
 
 Create a snapshot of any running Docker container. `dksnap` works with any
 container, but has extra features for select databases.
