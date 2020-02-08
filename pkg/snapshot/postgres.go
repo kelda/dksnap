@@ -46,7 +46,7 @@ func (c *Postgres) Create(ctx context.Context, container types.ContainerJSON, ti
 	// Errors are expected with the current dump file if the dump contains the
 	// same user as the POSTGRES_USER environment variable.
 	loadScript := []byte(`#!/bin/bash
-psql --username "${POSTGRES_USER:-postgres}" --no-password < /dksnap-dump.sql`)
+psql --username "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-postgres}" --no-password < /dksnap-dump.sql`)
 	if err := ioutil.WriteFile(filepath.Join(buildContext, "load-dump.sh"), loadScript, 0755); err != nil {
 		return fmt.Errorf("write dump: %w", err)
 	}
