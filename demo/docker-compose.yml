@@ -1,7 +1,6 @@
 version: '3'
 services:
   web:
-    #image: keldaio/django-polls
     build: .
     command:
       - "node"
