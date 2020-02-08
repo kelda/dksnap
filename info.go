@@ -250,6 +250,9 @@ func (ui *infoUI) replaceContainer(ctx context.Context, old Container, snap *sna
 		containerConfig.Image = snap.ImageNames[0]
 	}
 
+	// Force the container to use the snapshot's entrypoint.
+	containerConfig.Entrypoint = nil
+
 	networkingConfig := &network.NetworkingConfig{
 		EndpointsConfig: old.NetworkSettings.Networks,
 	}
