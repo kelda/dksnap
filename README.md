@@ -11,7 +11,7 @@
 [Contributing](#contributing)<br/>
 
 #### `dksnap` creates, views, and runs snapshots of Docker containers.
-When testing locally we often use containers with *test data*. `dksnap` allows
+For **testing in development**, we often use containers with *test data*. `dksnap` allows
 you to snapshot those containers at a good state, and roll back or forward as
 needed.
 
